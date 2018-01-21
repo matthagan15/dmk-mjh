@@ -1,77 +1,67 @@
 #include "World.hpp"
 
-/*
-                      POLYGON
-*/
+void World::initialize() {
+  std::array<double,2> xy_limits = {0.0,10.0};
+  std::vector<std::array<double,2> > bounds;
+  bounds.push_back(xy_limits);
+  bounds.push_back(xy_limits);
+  this->setBounds(bounds);
 
-void Polygon::setVertices(std::vector<std::array<double,2> >& vertices) {
-  std::vector<std::array<double,2> >::iterator i;
-  for(i=vertices.begin();i!=vertices.end();++i) {
-    m_vertices.push_back(*i);
-  }
+  std::vector<std::array<double,2> > verts = {{5.0,5.0},{6.0,5.0},{6.0,6.0},{5.0,7.0}};
+  this->add_obstacle(verts);
 }
 
-std::vector<std::array<double,2> > getVertices() {
-  return m_vertices;
+void World::delete_obstacles() {
+  size_t num_obs = m_obstacles.size();
+  for (size_t i=0; i!=num_obs;++i) {
+    delete m_obstacles[i];
+  }
+  m_obstacles.clear();
 }
 
-void Polygon::findIntersection(const std::array<double,3>& eqn1,
-  const std::array<double,3>& eqn2, std::array<double,2> intersection) {
-  if ((eqn1[0]==eqn2[0] && eqn1[1]==eqn2[1]) ||
-      (eqn1[0]==0 && eqn2[0]==0) ||
-      (eqn1[1]==0 && eqn2[1]==0)) {       // parallel lines
-    return;
-  }
-  if (eqn1[1]==0) {
-    double x = -eqn1[2]/eqn1[0];
-    double y = -eqn2[0]*x/eqn2[1] + eqn2[2]/eqn2[1];
-    intersection[0] = x;
-    intersection[1] = y;
-    return;
-  }
-  if (eqn2[1]==0) {
-    double x = -eqn2[2]/eqn2[0];
-    double y = -eqn1[0]*x/eqn1[1] + eqn1[2]/eqn1[1];
-    intersection[0] = x;
-    intersection[1] = y;
-    return;
-  }
-  double x = (eqn2[2]/eqn2[1]-eqn1[2]/eqn1[1])/(eqn2[0]/eqn2[1]-eqn1[0]/eqn1[1]);
-  double y = -eqn1[0]*x/eqn1[1] + eqn1[2]/eqn1[1];
-  intersection[0] = x;
-  intersection[1] = y;
-  return;
+void World::add_obstacle(const std::vector<std::array<double,2> >& vertices) {
+  Polygon obs = new Polygon(vertices);
+  m_obstacles.push_back(obs);
 }
 
-void Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
-  std::array<double,2>& intersection) {
-    std::array<double,3> ray_equation;
-    
+void World::setBounds(const std::vector<std::array<double,2> >& bounds) {
+  m_bounds = bounds;
+  double th = 0.1;  // wall thickness
+  double low_x = bounds[0][0];
+  double low_y = bounds[1][0];
+  double high_x = bounds[0][1];
+  double high_y = bounds[1][1];
+  std::vector<std::array<double,2> > LEFT = {{low_x,low_y},{low_x+th,low_y},
+                                              {low_x+th,high_y},{low_x,high_y}};
+  std::vector<std::array<double,2> > RIGHT = {{high_x-th,low_y},{high_x,low_y},
+                                              {high_x,high_y},{high_x-th,high_y}};
+  std::vector<std::array<double,2> > TOP = {{low_x,high_y-th},{high_x,high_y-th},
+                                              {high_x,high_y},{low_x,high_y}};
+  std::vector<std::array<double,2> > DOWN = {{low_x,low_y},{high_x,low_y},
+                                              {high_x,low_y+th},{low_x,low_y+th}};
+  this->add_obstacle(LEFT);
+  this->add_obstacle(RIGHT);
+  this->add_obstacle(TOP);
+  this->add_obstacle(DOWN);
+}
 
-    double best_dist = std::numeric_limits<double>::infinity();
-    std::array<double,2> best_pt;
-    size_t n_sides = m_equations.size();
-    for (size_t i=0;i != n_sides;++i) {
-      std::array<double,2> point;
-      this->findIntersection()
+std::vector<std::array<double,2> > World::getBounds() {
+  return m_bounds;
+}
+
+void World::writeToFile() {
+  std::fstream outfile("World.txt",std::fstream::out);
+
+  outfile << m_bounds[0][1] << "," << m_bounds[1][1] << "\n";
+
+  size_t num_obs = m_obstacles.size();
+  for (size_t i=0; i!= num_obs;++i) {
+    size_t num_verts = m_obstacles[i].getVertices().size();
+    for(size_t j=0; j!=num_verts;++j) {
+      outfile << "(" << m_obstacles[i].getVertices()[j][0];
+      outfile << "," << m_obstacles[i].getVertices()[j][1] << ")";
     }
-    std::array<double,2> point
-}
-
-void Polygon::generateEquations(std::vector<std::array<double,2> >& vertices) {
-  size_t num_vert = vertices.size();
-  for (size_t i = 0;  != num_vert; ++i) {
-    std::array<double,2> pointA = vertices[i];
-    std::array<double,2> pointB = (i != num_vert) ? vertices[i+1] : vertices[0];
-    double a = pointA[1]-pointB[1];
-    double b = pointB[0]-pointA[0];
-    double c = pointA[0]*pointB[1]-pointB[0]*pointA[1];
-    std::array<double,3> eqn = {a,b,c};
-    m_equations.push_back(eqn);
+    outfile << "\n";
   }
+  outfile.close();
 }
-
-
-/*
-                      WORLD
-*/

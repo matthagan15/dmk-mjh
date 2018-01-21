@@ -1,5 +1,6 @@
-#import <stdio.h>
-#import <iostream>
+#include <stdio.h>
+#include <iostream>
+#include "World.hpp"
 
 int main() {
     /*
@@ -12,4 +13,6 @@ int main() {
             as well as updating location and issuing commands.
     */
     std::cout << "Do you know da wae" << '\n';
+    World world;
+    world.writeToFile();
 }
