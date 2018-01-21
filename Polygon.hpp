@@ -12,6 +12,9 @@
 struct Polygon
 {
   // Vertices must be given in CCW order
+  Polygon() {
+    std::cout << "You didnt give me any vertices!\n";
+  }
   Polygon(std::vector<std::array<double,2> >& vertices) {
     generateEquations(vertices);
     setVertices(vertices);

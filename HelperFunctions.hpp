@@ -27,7 +27,4 @@ bool proportional(const T& a, const T& b) {
   return true;
 }
 
-
-
-
 #endif
