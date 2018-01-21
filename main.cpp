@@ -13,5 +13,6 @@ int main() {
             as well as updating location and issuing commands.
     */
     std::cout << "Do you know da wae" << '\n';
-    Polygon poly;
+    World world;
+    world.writeToFile();
 }

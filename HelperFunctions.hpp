@@ -1,6 +1,10 @@
 #ifndef HelperFunctions_hpp
 #define HelperFunctions_hpp
 
+#include <stdio.h>
+#include <cmath>
+#include <algorithm>
+
 template<class T>
 double euclideanDistance(const T& pointA,const T& pointB) {
     return pow(pow(pointA[0]-pointB[0],2.0)+pow(pointA[1]-pointB[1],2.0),0.5);
