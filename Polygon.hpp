@@ -52,54 +52,42 @@ std::vector<std::array<double,2> > Polygon::getVertices() {
 
 bool Polygon::findIntersection(const std::array<double,3>& eqn1,
   const std::array<double,3>& eqn2, std::array<double,2>& intersection) {
-  if ((eqn1[0]==eqn2[0] && eqn1[1]==eqn2[1]) ||
-      (eqn1[0]==0 && eqn2[0]==0) ||
-      (eqn1[1]==0 && eqn2[1]==0)) {       // parallel lines
-    std::cout << "...deemed parallel.\n";
+  if ((equal(eqn1[0],eqn2[0]) && equal(eqn1[1],eqn2[1])) ||
+      (equal(eqn1[0],0.0) && equal(eqn2[0],0.0)) ||
+      (equal(eqn1[1],0.0) && equal(eqn2[1],0.0))) {       // parallel lines
     return false;
   }
-  if (eqn1[1]==0) {
+  if (equal(eqn1[1],0.0)) {
     double x = -eqn1[2]/eqn1[0];
-    double y = -eqn2[0]*x/eqn2[1] + eqn2[2]/eqn2[1];
+    double y = -eqn2[0]*x/eqn2[1] - eqn2[2]/eqn2[1];
     intersection[0] = x;
     intersection[1] = y;
-    std::cout << "CASE 1\n";
-    std::cout<< "intersection at: " << x << "," << y << "\n";
     return true;
   }
-  if (eqn2[1]==0) {
+  if (equal(eqn2[1],0.0)) {
     double x = -eqn2[2]/eqn2[0];
-    double y = -eqn1[0]*x/eqn1[1] + eqn1[2]/eqn1[1];
+    double y = -eqn1[0]*x/eqn1[1] - eqn1[2]/eqn1[1];
     intersection[0] = x;
     intersection[1] = y;
-    std::cout << "CASE 2\n";
-    std::cout<< "intersection at: " << x << "," << y << "\n";
     return true;
   }
   double x = (eqn2[2]/eqn2[1]-eqn1[2]/eqn1[1])/(eqn1[0]/eqn1[1]-eqn2[0]/eqn2[1]);
   double y = -eqn1[0]*x/eqn1[1] - eqn1[2]/eqn1[1];
   intersection[0] = x;
   intersection[1] = y;
-  std::cout << "CASE 3\n";
-  std::cout<< "intersection at: " << x << "," << y << "\n";
   return true;
 }
 
 bool Polygon::isWithinPoints(const std::array<double,2>& lim1,const std::array<double,2>&lim2,
   const std::array<double,2>& point) {
-  std::cout << "limit 1: " << lim1[0] << "," << lim1[1] << "\n";
-  std::cout << "limit 2: " << lim2[0] << "," << lim2[1] << "\n";
-  std::cout << "point: " << point[0] << "," << point[1] << "\n";
   double eps = 0.00001;
   if (equal(lim1[0],lim2[0])) {
-    std::cout << "vertical\n";
     if (lim1[1] > lim2[1]) {
       return (point[1] <= lim1[1]+eps && point[1] >= lim2[1]-eps);
     } else {
       return (point[1] >= lim1[1]-eps && point[1] <= lim2[1]+eps);
     }
   } else {
-    std::cout << "not vertical\n";
     if (lim1[0] > lim2[0]) {
       return (point[0] <= lim1[0]+eps && point[0] >= lim2[0]-eps);
     } else {
@@ -114,16 +102,13 @@ bool Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>
   std::array<double,3> ray_eqn;
   ray_eqn[0] = -ray[1];
   ray_eqn[1] = ray[0];
-  ray_eqn[2] = source[0]*(source[1]+ray[1])-source[1]*(source[0]+ray[1]);
-  std::cout << "ray eqn: " << ray_eqn[0] << "," << ray_eqn[1] << "," << ray_eqn[2] << "\n";
+  ray_eqn[2] = source[0]*(source[1]+ray[1])-source[1]*(source[0]+ray[0]);
   double best_dist = dist_ray;
   std::array<double,2> best_pt;
   size_t n_sides = m_equations.size();
   for (size_t i=0;i != n_sides;++i) {
     int j = (i!= n_sides-1)?i+1:0;
     std::array<double,2> point;
-    std::cout << "testing intersection with...\n";
-    std::cout << m_equations[i][0] << "," << m_equations[i][1] << "," << m_equations[i][2] << "\n";
     bool found = this->findIntersection(ray_eqn,m_equations[i],point);
     if (!found) {
       if (proportional(ray_eqn,m_equations[i])) {
@@ -137,12 +122,9 @@ bool Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>
         }
       }
     } else {
-      std::cout << "within points: " << this->isWithinPoints(m_vertices[i],m_vertices[j],
-        point) << "\n";
       if (this->isWithinPoints(m_vertices[i],m_vertices[j],
-        point)) {
+        point) && equal(angle(source,point),angle(ray))) {
         double dist = euclideanDistance(point,source);
-        std::cout << "dist: " << dist << "\n";
         if (dist < best_dist) {
           best_dist = dist;
           best_pt[0] = point[0]; best_pt[1] = point[1];

@@ -32,7 +32,6 @@ for verts in list_obs:
     polygon = patches.Polygon(verts, True)
     obstacles.append(polygon)
 p = PatchCollection(obstacles, alpha=1.0,color='black')
-
 ax.add_collection(p)
 
 filename = 'robot.txt'
@@ -45,6 +44,8 @@ for line in file_robot:
     if line[0].isalpha():
         mode = line
         continue
+    if mode == 'scanner':
+        scan_pow = float(line)
     x,y = [float(w) for w in line.split(',')]
     if mode == 'position':
         position = [x,y]
@@ -54,6 +55,10 @@ for line in file_robot:
         continue
 
 plt.plot(position[0],position[1],'b^')
+circle = patches.Circle((position[0], position[1]), 2)
+q = PatchCollection([circle], alpha=0.3,color='red')
+ax.add_collection(q)
+
 if len(detections) != 0:
     x_det,y_det = zip(*detections)
     plt.plot(x_det,y_det,'r*')
@@ -62,4 +67,5 @@ plt.xlim(0,10)
 plt.ylim(0,10)
 ax.yaxis.set_visible(False)
 ax.xaxis.set_visible(False)
+ax.set_aspect('equal', 'datalim')
 plt.show()

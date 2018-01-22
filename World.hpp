@@ -111,7 +111,6 @@ bool World::closestIntersection(std::array<double,2>& ray,std::array<double,2>& 
   std::array<double,2> best_pt;
   std::array<double,2> point;
   for (size_t i=0; i!= num_obs; ++i) {
-    std::cout << "obstacle: " << i << "\n";
     bool found = m_obstacles[i]->closestIntersection(ray,source,point);
     if (found) {
       double dist = euclideanDistance(source,point);

@@ -25,6 +25,10 @@ public:
   void setScanResolution(int res);
   void setScanAccuracy(double acc);
   void setScanPower(double power);
+  double getStepSize();
+  double getScanResolution();
+  double getScanAccuracy();
+  double getScanPower();
   double getX();
   double getY();
 private:
@@ -32,11 +36,11 @@ private:
 };
 
 Robot::Robot() {
-  m_location[0] = 1.0;
-  m_location[1] = 5.0;
-  this->setScanResolution(1);
+  m_location[0] = 2.0;
+  m_location[1] = 8.0;
+  this->setScanResolution(50);
   this->setScanAccuracy(0.2);
-  this->setScanPower(5.0);
+  this->setScanPower(2.0);
   this->setStepSize(0.2);
   m_world.writeToFile();
 }
@@ -65,6 +69,22 @@ void Robot::setScanPower(double power) {
   m_scan_pow = power;
 }
 
+double Robot::getStepSize() {
+  return m_step_size;
+}
+
+double Robot::getScanResolution() {
+  return m_scan_res;
+}
+
+double Robot::getScanAccuracy() {
+  return m_scan_acc;
+}
+
+double Robot::getScanPower() {
+  return m_scan_pow;
+}
+
 void Robot::Sense(std::vector<std::array<double,2> >& detections) {
   for (int i=0; i!=m_scan_res; ++i) {
     double angle = 2*M_PI*i/static_cast<double>(m_scan_res);
@@ -73,7 +93,6 @@ void Robot::Sense(std::vector<std::array<double,2> >& detections) {
     ray[1] = m_scan_pow*sin(angle);
     std::array<double,2> source = {{this->getX(),this->getY()}};
     std::array<double,2> ping;
-    std::cout << "ray: " << i << "\n";
     bool found = m_world.closestIntersection(ray,source,ping);
     if (found) {
       // ping[0] += randDouble(-m_scan_acc,m_scan_acc);
@@ -92,7 +111,7 @@ void Robot::Move() {
 void Robot::writeToFile(std::vector<std::array<double,2> >& detections) {
   std::fstream outfile("robot.txt",std::fstream::out);
   outfile << "position\n" << this->getX() << "," << this->getY() << "\n";
-
+  outfile << "sensor\n" << this->getScanPower() << "\n";
   size_t size = detections.size();
   outfile << "detections\n";
   for (size_t i=0;i!=size;++i) {

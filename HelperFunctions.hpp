@@ -11,9 +11,25 @@ double euclideanDistance(const T& pointA,const T& pointB) {
     return pow(pow(pointA[0]-pointB[0],2.0)+pow(pointA[1]-pointB[1],2.0),0.5);
   }
 
-template<class T>
-bool equal(const T a, const T b, double epsilon=0.000001) {
+
+bool equal(const double a, const double b, double epsilon=0.000001) {
   return abs(a-b) < epsilon;
+}
+
+template<class T>
+double angle(const T& v1, const T& v2) {
+  if (equal(v1[0],v2[0])) {
+    return v2[1] > v1[1] ? M_PI_2 : -M_PI_2;
+  }
+  return atan2((v2[1]-v1[1]),(v2[0]-v1[0]));
+}
+
+template<class T>
+double angle(const T& v1) {
+  if (equal(v1[0],0.0)) {
+    return v1[1] > 0.0 ? M_PI_2 : -M_PI_2;
+  }
+  return atan2(v1[1],v1[0]);
 }
 
 template<class T>
