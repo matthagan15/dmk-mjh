@@ -2,6 +2,7 @@
 #include <iostream>
 #include "World.hpp"
 #include "Robot.hpp"
+#include "probDist.hpp"
 
 int main() {
     /*
@@ -30,4 +31,8 @@ int main() {
     // std::cout << intersection[0] << "," << intersection[1] << "\n";
     Robot robot;
     robot.Move();
+    probDist pd = probDist(10,10);
+    pd.initRect(1,1,2,3);
+    pd.printDist();
+
 }
