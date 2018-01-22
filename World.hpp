@@ -24,9 +24,9 @@ public:
   void writeToFile();
   bool closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
                             std::array<double,2>& intersection);
+  std::vector<Polygon*> m_obstacles;
 private:
   std::vector<std::array<double,2> > m_bounds;
-  std::vector<Polygon*> m_obstacles;
 
   void initialize();
   void delete_obstacles();
@@ -46,6 +46,7 @@ void World::initialize() {
 
   std::vector<std::array<double,2> > verts = {{{5.0,5.0}},{{6.0,5.0}},{{6.0,6.0}},{{5.0,7.0}}};
   this->add_obstacle(verts);
+
 }
 
 void World::delete_obstacles() {
@@ -110,6 +111,7 @@ bool World::closestIntersection(std::array<double,2>& ray,std::array<double,2>& 
   std::array<double,2> best_pt;
   std::array<double,2> point;
   for (size_t i=0; i!= num_obs; ++i) {
+    std::cout << "obstacle: " << i << "\n";
     bool found = m_obstacles[i]->closestIntersection(ray,source,point);
     if (found) {
       double dist = euclideanDistance(source,point);

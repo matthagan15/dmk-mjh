@@ -8,11 +8,11 @@ import math
 import numpy as np
 
 filename = 'World.txt'
-file_tree = open(filename,'r')
+file_world = open(filename,'r')
 list_obs = []
 
 first = True
-for line in file_tree:	# each line represents a series of x,y points in a path from two nodes
+for line in file_world:	# each line represents a series of x,y points in a path from two nodes
     line = line[:-2]    # remove end line symbol
     if first:
         x_span,y_span = [float(w) for w in line.split(',')]
@@ -34,6 +34,29 @@ for verts in list_obs:
 p = PatchCollection(obstacles, alpha=1.0,color='black')
 
 ax.add_collection(p)
+
+filename = 'robot.txt'
+file_robot = open(filename,'r')
+
+
+detections = []
+for line in file_robot:
+    line = line[:-1]
+    if line[0].isalpha():
+        mode = line
+        continue
+    x,y = [float(w) for w in line.split(',')]
+    if mode == 'position':
+        position = [x,y]
+        continue
+    if mode == 'detections':
+        detections.append([x,y])
+        continue
+print(detections)
+
+plt.plot(position[0],position[1],'b^')
+x_det,y_det = zip(*detections)
+plt.plot(x_det,y_det,'r*')
 
 plt.xlim(0,10)
 plt.ylim(0,10)

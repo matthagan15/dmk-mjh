@@ -14,6 +14,16 @@ int main() {
             as well as updating location and issuing commands.
     */
     std::cout << "Do you know da wae" << '\n';
-    Robot robot;
-    robot.Move();
+    std::vector<std::array<double,2> > verts = {{{5.0,5.0}},{{6.0,5.0}},{{6.0,6.0}},{{5.0,7.0}}};
+    Polygon poly(verts);
+    std::cout << "num eqns: " << poly.m_equations.size() << "\n";
+    for (int i = 0; i != 4; ++i) {
+      std::cout << "(" << poly.m_vertices[i][0] << "," << poly.m_vertices[i][1] << ") ";
+    }
+    std::cout << "\n";
+    for (int i = 0; i != 4; ++i) {
+      std::cout << poly.m_equations[i][0] << "," << poly.m_equations[i][1] << "," << poly.m_equations[i][2] << "\n";
+    }
+    // Robot robot;
+    // robot.Move();
 }

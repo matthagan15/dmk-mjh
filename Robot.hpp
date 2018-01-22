@@ -32,8 +32,8 @@ private:
 };
 
 Robot::Robot() {
-  m_location[0] = 4.0;
-  m_location[1] = 4.0;
+  m_location[0] = 1.0;
+  m_location[1] = 1.0;
   this->setScanResolution(30);
   this->setScanAccuracy(0.2);
   this->setScanPower(5.0);
@@ -72,13 +72,12 @@ void Robot::Sense(std::vector<std::array<double,2> >& detections) {
     ray[0] = m_scan_pow*cos(angle);
     ray[1] = m_scan_pow*sin(angle);
     std::array<double,2> source = {{this->getX(),this->getY()}};
-    std::cout << "ray: " << ray[0] << "," << ray[1] << "\n";
-    std::cout << "source: " << source[0] << "," << source[1] << "\n";
     std::array<double,2> ping;
+    std::cout << "ray: " << i << "\n";
     bool found = m_world.closestIntersection(ray,source,ping);
     if (found) {
-      ping[0] += randDouble(-m_scan_acc,m_scan_acc);
-      ping[1] += randDouble(-m_scan_acc,m_scan_acc);
+      // ping[0] += randDouble(-m_scan_acc,m_scan_acc);
+      // ping[1] += randDouble(-m_scan_acc,m_scan_acc);
       detections.push_back(ping);
     }
   }

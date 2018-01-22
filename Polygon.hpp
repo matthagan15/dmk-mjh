@@ -14,10 +14,7 @@ struct Polygon
   Polygon() {
     std::cout << "You didnt give me any vertices!\n";
   }
-  Polygon(const std::vector<std::array<double,2> >& vertices) {
-    generateEquations(vertices);
-    setVertices(vertices);
-  }
+  Polygon(const std::vector<std::array<double,2> >& vertices);
   void setVertices(const std::vector<std::array<double,2> >& vertices);
   std::vector<std::array<double,2> > getVertices();
   bool closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
@@ -25,7 +22,7 @@ struct Polygon
   bool findIntersection(const std::array<double,3>& eqn1,
                             const std::array<double,3>& eqn2,
                             std::array<double,2> intersection);
-private:
+// private:
   void generateEquations(const std::vector<std::array<double,2> >& vertices);
   bool isWithinPoints(const std::array<double,2>& lim1,const std::array<double,2>&lim2,
     const std::array<double,2>& point);
@@ -36,6 +33,11 @@ private:
 /////////////////////////////
 /////////////////////////////
 /////////////////////////////
+
+Polygon::Polygon(const std::vector<std::array<double,2> >& vertices) {
+  generateEquations(vertices);
+  setVertices(vertices);
+}
 
 void Polygon::setVertices(const std::vector<std::array<double,2> >& vertices) {
   std::vector<std::array<double,2> >::const_iterator i;
@@ -95,12 +97,11 @@ bool Polygon::isWithinPoints(const std::array<double,2>& lim1,const std::array<d
 
 bool Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
   std::array<double,2>& intersection) {
-  std::array<double,3> ray_eqn;
   double dist_ray = pow(pow(ray[0],2.0)+pow(ray[1],2.0),0.5);
+  std::array<double,3> ray_eqn;
   ray_eqn[0] = -ray[1];
   ray_eqn[1] = ray[0];
   ray_eqn[2] = source[0]*(source[1]+ray[1])-source[1]*(source[0]+ray[1]);
-
   double best_dist = dist_ray;
   std::array<double,2> best_pt;
   size_t n_sides = m_equations.size();
@@ -118,9 +119,12 @@ bool Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>
         best_pt[1] = dist_i < dist_j ? m_vertices[i][1] : m_vertices[j][1];
       }
     } else {
+      std::cout << "within points: " << this->isWithinPoints(m_vertices[i],m_vertices[j],
+        point) << "\n";
       if (this->isWithinPoints(m_vertices[i],m_vertices[j],
         point)) {
         double dist = euclideanDistance(point,source);
+        std::cout << "dist: " << dist << "\n";
         if (dist < best_dist) {
           best_dist = dist;
           best_pt[0] = point[0]; best_pt[1] = point[1];
@@ -140,10 +144,11 @@ void Polygon::generateEquations(const std::vector<std::array<double,2> >& vertic
   size_t num_vert = vertices.size();
   for (size_t i = 0; i != num_vert; ++i) {
     std::array<double,2> pointA = vertices[i];
-    std::array<double,2> pointB = (i != num_vert) ? vertices[i+1] : vertices[0];
+    std::array<double,2> pointB = (i != num_vert-1) ? vertices[i+1] : vertices[0];
     double a = pointA[1]-pointB[1];
     double b = pointB[0]-pointA[0];
     double c = pointA[0]*pointB[1]-pointB[0]*pointA[1];
+    c = abs(c) < 0.000001 ? 0.0 : c;
     std::array<double,3> eqn = {{a,b,c}};
     m_equations.push_back(eqn);
   }
