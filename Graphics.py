@@ -41,11 +41,13 @@ file_robot = open(filename,'r')
 detections = []
 for line in file_robot:
     line = line[:-1]
+    print(line)
     if line[0].isalpha():
         mode = line
         continue
     if mode == 'scanner':
         scan_pow = float(line)
+        continue
     x,y = [float(w) for w in line.split(',')]
     if mode == 'position':
         position = [x,y]

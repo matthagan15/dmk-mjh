@@ -1,6 +1,6 @@
 position
 2,8
-sensor
+scanner
 2
 detections
 2.61735,9.9

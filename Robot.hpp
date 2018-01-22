@@ -111,7 +111,7 @@ void Robot::Move() {
 void Robot::writeToFile(std::vector<std::array<double,2> >& detections) {
   std::fstream outfile("robot.txt",std::fstream::out);
   outfile << "position\n" << this->getX() << "," << this->getY() << "\n";
-  outfile << "sensor\n" << this->getScanPower() << "\n";
+  outfile << "scanner\n" << this->getScanPower() << "\n";
   size_t size = detections.size();
   outfile << "detections\n";
   for (size_t i=0;i!=size;++i) {
