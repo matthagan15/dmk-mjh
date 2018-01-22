@@ -52,11 +52,11 @@ for line in file_robot:
     if mode == 'detections':
         detections.append([x,y])
         continue
-print(detections)
 
 plt.plot(position[0],position[1],'b^')
-x_det,y_det = zip(*detections)
-plt.plot(x_det,y_det,'r*')
+if len(detections) != 0:
+    x_det,y_det = zip(*detections)
+    plt.plot(x_det,y_det,'r*')
 
 plt.xlim(0,10)
 plt.ylim(0,10)

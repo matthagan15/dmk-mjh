@@ -33,8 +33,8 @@ private:
 
 Robot::Robot() {
   m_location[0] = 1.0;
-  m_location[1] = 1.0;
-  this->setScanResolution(30);
+  m_location[1] = 5.0;
+  this->setScanResolution(1);
   this->setScanAccuracy(0.2);
   this->setScanPower(5.0);
   this->setStepSize(0.2);
