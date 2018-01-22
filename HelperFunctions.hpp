@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <algorithm>
+#include <random>
 
 template<class T>
 double euclideanDistance(const T& pointA,const T& pointB) {
@@ -29,6 +30,26 @@ bool proportional(const T& a, const T& b) {
     }
   }
   return true;
+}
+
+double randDouble(double low, double high)
+{
+    double temp;
+    /* swap low & high around if the user makes no sense */
+    if (low > high)
+    {
+        temp = low;
+        low = high;
+        high = temp;
+    }
+
+    /* calculate the random number & return it */
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_real_distribution<float> dis(0.0,1.0);
+
+    temp = dis(gen)*(high-low) + low;
+    return temp;
 }
 
 #endif

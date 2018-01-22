@@ -22,6 +22,8 @@ public:
   void setBounds(const std::vector<std::array<double,2> >& bounds);
   std::vector<std::array<double,2> > getBounds();
   void writeToFile();
+  bool closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
+                            std::array<double,2>& intersection);
 private:
   std::vector<std::array<double,2> > m_bounds;
   std::vector<Polygon*> m_obstacles;
@@ -101,5 +103,29 @@ void World::writeToFile() {
   outfile.close();
 }
 
+bool World::closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
+  std::array<double,2>& intersection) {
+  size_t num_obs = m_obstacles.size();
+  double best_dist = std::numeric_limits<double>::infinity();
+  std::array<double,2> best_pt;
+  std::array<double,2> point;
+  for (size_t i=0; i!= num_obs; ++i) {
+    bool found = m_obstacles[i]->closestIntersection(ray,source,point);
+    if (found) {
+      double dist = euclideanDistance(source,point);
+      if (dist < best_dist) {
+        best_dist = dist;
+        best_pt[0] = point[0];
+        best_pt[1] = point[1];
+      }
+    }
+  }
+  if (best_dist < std::numeric_limits<double>::infinity()) {
+    intersection[0] = best_pt[0];
+    intersection[1] = best_pt[1];
+    return true;
+  }
+  return false;
+}
 
 #endif

@@ -20,9 +20,9 @@ struct Polygon
   }
   void setVertices(const std::vector<std::array<double,2> >& vertices);
   std::vector<std::array<double,2> > getVertices();
-  void closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
+  bool closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
                             std::array<double,2>& intersection);
-  void findIntersection(const std::array<double,3>& eqn1,
+  bool findIntersection(const std::array<double,3>& eqn1,
                             const std::array<double,3>& eqn2,
                             std::array<double,2> intersection);
 private:
@@ -48,32 +48,32 @@ std::vector<std::array<double,2> > Polygon::getVertices() {
   return m_vertices;
 }
 
-void Polygon::findIntersection(const std::array<double,3>& eqn1,
+bool Polygon::findIntersection(const std::array<double,3>& eqn1,
   const std::array<double,3>& eqn2, std::array<double,2> intersection) {
   if ((eqn1[0]==eqn2[0] && eqn1[1]==eqn2[1]) ||
       (eqn1[0]==0 && eqn2[0]==0) ||
       (eqn1[1]==0 && eqn2[1]==0)) {       // parallel lines
-    return;
+    return false;
   }
   if (eqn1[1]==0) {
     double x = -eqn1[2]/eqn1[0];
     double y = -eqn2[0]*x/eqn2[1] + eqn2[2]/eqn2[1];
     intersection[0] = x;
     intersection[1] = y;
-    return;
+    return true;
   }
   if (eqn2[1]==0) {
     double x = -eqn2[2]/eqn2[0];
     double y = -eqn1[0]*x/eqn1[1] + eqn1[2]/eqn1[1];
     intersection[0] = x;
     intersection[1] = y;
-    return;
+    return true;
   }
   double x = (eqn2[2]/eqn2[1]-eqn1[2]/eqn1[1])/(eqn2[0]/eqn2[1]-eqn1[0]/eqn1[1]);
   double y = -eqn1[0]*x/eqn1[1] + eqn1[2]/eqn1[1];
   intersection[0] = x;
   intersection[1] = y;
-  return;
+  return true;
 }
 
 bool Polygon::isWithinPoints(const std::array<double,2>& lim1,const std::array<double,2>&lim2,
@@ -93,7 +93,7 @@ bool Polygon::isWithinPoints(const std::array<double,2>& lim1,const std::array<d
   }
 }
 
-void Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
+bool Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>& source,
   std::array<double,2>& intersection) {
   std::array<double,3> ray_eqn;
   double dist_ray = pow(pow(ray[0],2.0)+pow(ray[1],2.0),0.5);
@@ -107,8 +107,8 @@ void Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>
   for (size_t i=0;i != n_sides;++i) {
     int j = (i!= n_sides)?i+1:0;
     std::array<double,2> point;
-    this->findIntersection(ray_eqn,m_equations[i],point);
-    if (point.size()==0 && proportional(ray_eqn,m_equations[i])) {
+    bool found = this->findIntersection(ray_eqn,m_equations[i],point);
+    if (!found && proportional(ray_eqn,m_equations[i])) {
       double dist_i = euclideanDistance(m_vertices[i],source);
       double dist_j = euclideanDistance(m_vertices[j],source);
       double dist = std::min(dist_i,dist_j);
@@ -128,8 +128,12 @@ void Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>
       }
     }
   }
-  intersection[0] = best_pt[0];
-  intersection[1] = best_pt[1];
+  if (best_dist < dist_ray) {
+    intersection[0] = best_pt[0];
+    intersection[1] = best_pt[1];
+    return true;
+  }
+  return false;
 }
 
 void Polygon::generateEquations(const std::vector<std::array<double,2> >& vertices) {
