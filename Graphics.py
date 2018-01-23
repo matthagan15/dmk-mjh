@@ -67,7 +67,8 @@ plt.ylim(0,10)
 ax.yaxis.set_visible(False)
 ax.xaxis.set_visible(False)
 
-robot, = plt.plot([],[],'b^')
+
+robot, = plt.plot([],[],'bo')
 pings, = plt.plot([],[],'r.')
 
 for i in range(len(data)):
@@ -88,5 +89,5 @@ for i in range(len(data)):
     scanner = patches.Wedge((x, y),scan_pow, th1, th2,alpha=0.3,color='red')
     ax.add_patch(scanner)
     plt.draw()
-    plt.pause(3)
+    plt.pause(0.1)
 plt.show()

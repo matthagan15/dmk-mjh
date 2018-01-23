@@ -20,7 +20,7 @@ class Robot
   std::array<double,2> m_location;
   double m_direction;
   std::ofstream m_outfile;
-  double m_memory; // ranges from -1 (left) to 1 (right)
+  int m_memory; // ranges from -1 (left) to 1 (right)
 public:
   Robot();
   ~Robot();
@@ -47,14 +47,14 @@ private:
 Robot::Robot() {
   m_location[0] = 1.0;
   m_location[1] = 1.0;
-  m_direction = M_PI_2;
-  this->setScanResolution(20);
+  m_direction = 6.1;
+  this->setScanResolution(10);
   this->setScanAccuracy(0.2);
   this->setScanWidth(0.3);
-  this->setScanPower(2.0);
-  this->setStepSize(0.2);
+  this->setScanPower(1.0);
+  this->setStepSize(0.1);
   m_world.writeToFile();
-  m_memory = 0.0;
+  m_memory = 1;
   m_outfile.open("robot.txt");
 }
 
@@ -144,28 +144,52 @@ void Robot::Move() {
   l_detections.insert(l_detections.end(),r_detections.begin(),r_detections.end());
   this->writeToFile(l_detections);
 
-  double r_angle = 0.0;
-  double l_angle = 0.0;
+  double best_angle = m_direction;
+  double best_gap = 0.0;
   if (l_detections.size() != 0) {
-    l_angle = angle(m_location,l_detections.front());
+    l_detections.push_back(l_detections.back());
+    int best_id = 0;
+    for (int i=0;i!=l_detections.size();++i) {
+      if (i==0) {
+        double high = m_direction+m_scan_width;
+        double low = angle(m_location,l_detections[i]);
+        if (high-low > best_gap) {
+          best_gap = high-low;
+          best_angle = (high+low)/2.0;
+          best_id = i;
+        }
+      } else if (i==l_detections.size()-1) {
+        double high = angle(m_location,l_detections[i]);
+        double low = m_direction-m_scan_width;
+        if (high-low > best_gap) {
+          best_gap = high-low;
+          best_angle = (high+low)/2.0;
+          best_id = i;
+        }
+      } else {
+        double high = angle(m_location,l_detections[i-1]);
+        double low = angle(m_location,l_detections[i]);
+        if (high-low > best_gap) {
+          best_gap = high-low;
+          best_angle = (high+low)/2.0;
+          best_id = i;
+        }
+      }
+    }
   }
-  if (r_detections.size() != 0) {
-    r_angle = angle(m_location,l_detections.front());
+  if (best_gap < 0.35 && !equal(m_direction,best_angle)) {
+    m_direction = fmod(m_direction+M_PI,2.0*M_PI);
+  } else {
+    m_direction = best_angle;
   }
-  double avg_angle = (l_angle+r_angle)/2.0 - m_direction;
-  m_memory += avg_angle*0.1;
-  m_memory = limit(m_memory,-1.0,1.0);
-  if (m_memory > 0.1) {
-    m_direction -= 0.1;
-  } else if (m_memory < -0.1) {
-    m_direction += 0.1;
-  }
+  m_direction = best_angle;
+
   m_location[0] += m_step_size*cos(m_direction);
   m_location[1] += m_step_size*sin(m_direction);
 }
 
 void Robot::Wander() {
-  for (int i=0; i != 1000; ++i) {
+  for (int i=0; i != 100; ++i) {
     this->Move();
   }
 }

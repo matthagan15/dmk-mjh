@@ -44,8 +44,20 @@ void World::initialize() {
   bounds.push_back(xy_limits);
   this->setBounds(bounds);
 
-  std::vector<std::array<double,2> > verts = {{{5.0,5.0}},{{6.0,5.0}},{{6.0,6.0}},{{5.0,7.0}}};
-  this->add_obstacle(verts);
+  std::vector<std::array<double,2> > v1 = {{{5.0,5.0}},{{6.0,5.0}},{{6.0,6.0}},{{5.0,7.0}}};
+  this->add_obstacle(v1);
+  std::vector<std::array<double,2> > v2 = {{{1.0,3.0}},{{2.0,4.0}},{{1.0,5.5}}};
+  this->add_obstacle(v2);
+  std::vector<std::array<double,2> > v3 = {{{1.0,2.0}},{{3.0,0.5}},{{4.0,3.5}}};
+  this->add_obstacle(v3);
+  std::vector<std::array<double,2> > v4 = {{{2.0,6.0}},{{4.0,5.5}},{{5.0,8.0}},{{8.0,9.0}},{{4.0,9.5}}};
+  this->add_obstacle(v4);
+  std::vector<std::array<double,2> > v5 = {{{1.0,8.0}},{{2.0,8.0}},{{2.0,9.0}},{{1.0,9.0}}};
+  this->add_obstacle(v5);
+  std::vector<std::array<double,2> > v6 = {{{6.0,1.0}},{{8.0,1.0}},{{9.0,2.0}},{{9.0,3.0}},{{8.0,4.0}},{{6.0,4.0}},{{5.0,3.0}},{{5.0,2.0}}};
+  this->add_obstacle(v6);
+  std::vector<std::array<double,2> > v7 = {{{7.0,5.0}},{{9.0,4.0}},{{8.0,8.0}}};
+  this->add_obstacle(v7);
 
 }
 
