@@ -2,6 +2,7 @@
 #include <iostream>
 #include "World.hpp"
 #include "Robot.hpp"
+#include "probDist.hpp"
 
 int main() {
     /*
