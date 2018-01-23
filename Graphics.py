@@ -25,6 +25,34 @@ for line in file_world:	# each line represents a series of x,y points in a path 
         obs.append(numbers)
     list_obs.append(obs)
 
+filename = 'robot.txt'
+file_robot = open(filename,'r')
+
+
+detections = []
+data = []
+for line in file_robot:
+    line = line[:-1]
+    if line[0].isalpha():
+        mode = line
+        if mode != "end":
+            continue
+    if mode == 'scanner':
+        scan_pow,scan_width = [float(w) for w in line.split(',')]
+        continue
+    if mode == 'position':
+        position = [float(w) for w in line.split(',')]
+        continue
+    if mode == 'detections':
+        x,y = [float(w) for w in line.split(',')]
+        detections.append([x,y])
+        continue
+    if mode == 'end':
+        data.append([position,detections])
+        continue
+
+def radToDeg(x):
+    return x*180.0/math.pi
 
 fig, ax = plt.subplots()
 obstacles = []
@@ -33,41 +61,28 @@ for verts in list_obs:
     obstacles.append(polygon)
 p = PatchCollection(obstacles, alpha=1.0,color='black')
 ax.add_collection(p)
-
-filename = 'robot.txt'
-file_robot = open(filename,'r')
-
-
-detections = []
-for line in file_robot:
-    line = line[:-1]
-    print(line)
-    if line[0].isalpha():
-        mode = line
-        continue
-    if mode == 'scanner':
-        scan_pow = float(line)
-        continue
-    x,y = [float(w) for w in line.split(',')]
-    if mode == 'position':
-        position = [x,y]
-        continue
-    if mode == 'detections':
-        detections.append([x,y])
-        continue
-
-plt.plot(position[0],position[1],'b^')
-circle = patches.Circle((position[0], position[1]), 2)
-q = PatchCollection([circle], alpha=0.3,color='red')
-ax.add_collection(q)
-
-if len(detections) != 0:
-    x_det,y_det = zip(*detections)
-    plt.plot(x_det,y_det,'r*')
-
 plt.xlim(0,10)
 plt.ylim(0,10)
 ax.yaxis.set_visible(False)
 ax.xaxis.set_visible(False)
-ax.set_aspect('equal', 'datalim')
+
+robot, = plt.plot([],[],'b^')
+pings, = plt.plot([],[],'r.')
+
+for i in range(len(data)):
+    #unpack
+    x,y,th = data[i][0]
+    print(x,y,th)
+    det = data[i][1]
+    xdet,ydet = zip(*det)
+    robot.set_data(x,y)
+    pings.set_data(xdet,ydet)
+    th1 = radToDeg(th-scan_width)
+    th2 = radToDeg(th+scan_width)
+    if i != 0:
+        scanner.remove()
+    scanner = patches.Wedge((x, y),scan_pow, th1, th2,alpha=0.3,color='red')
+    ax.add_patch(scanner)
+    plt.draw()
+    plt.pause(0.2)
 plt.show()

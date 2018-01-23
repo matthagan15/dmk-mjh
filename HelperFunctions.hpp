@@ -68,4 +68,15 @@ double randDouble(double low, double high)
     return temp;
 }
 
+
+double limit(const double x, const double low, const double high) {
+  if (x < low) {
+    return low;
+  }
+  if (x > high) {
+    return high;
+  }
+  return x;
+}
+
 #endif

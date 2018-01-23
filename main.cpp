@@ -29,5 +29,5 @@ int main() {
     // std::cout << (poly.closestIntersection(ray,source,intersection) ? "true" : "false") << "\n";
     // std::cout << intersection[0] << "," << intersection[1] << "\n";
     Robot robot;
-    robot.Move();
+    robot.Wander();
 }
