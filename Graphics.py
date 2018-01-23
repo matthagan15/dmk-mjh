@@ -49,6 +49,7 @@ for line in file_robot:
         continue
     if mode == 'end':
         data.append([position,detections])
+        detections = []
         continue
 
 def radToDeg(x):
@@ -72,11 +73,14 @@ pings, = plt.plot([],[],'r.')
 for i in range(len(data)):
     #unpack
     x,y,th = data[i][0]
-    print(x,y,th)
     det = data[i][1]
-    xdet,ydet = zip(*det)
+
     robot.set_data(x,y)
-    pings.set_data(xdet,ydet)
+    if len(det) != 0:
+        xdet,ydet = zip(*det)
+        pings.set_data(xdet,ydet)
+    else:
+        pings.set_data([],[])
     th1 = radToDeg(th-scan_width)
     th2 = radToDeg(th+scan_width)
     if i != 0:
@@ -84,5 +88,5 @@ for i in range(len(data)):
     scanner = patches.Wedge((x, y),scan_pow, th1, th2,alpha=0.3,color='red')
     ax.add_patch(scanner)
     plt.draw()
-    plt.pause(0.2)
+    plt.pause(3)
 plt.show()

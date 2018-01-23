@@ -46,7 +46,7 @@ private:
 
 Robot::Robot() {
   m_location[0] = 1.0;
-  m_location[1] = 8.0;
+  m_location[1] = 1.0;
   m_direction = M_PI_2;
   this->setScanResolution(20);
   this->setScanAccuracy(0.2);
@@ -141,13 +141,17 @@ void Robot::Move() {
   std::vector<std::array<double,2> > l_detections;
   std::vector<std::array<double,2> > r_detections;
   this->Sense(l_detections,r_detections);
-  l_detections.insert(l_detections.end(), r_detections.begin(), r_detections.end());
+  l_detections.insert(l_detections.end(),r_detections.begin(),r_detections.end());
   this->writeToFile(l_detections);
 
-  std::array<double,2> l = {{l_detections.front()[0],l_detections.front()[1]}};
-  std::array<double,2> r = {{l_detections.back()[0],l_detections.back()[1]}};
-  double r_angle = angle(m_location,r);
-  double l_angle = angle(m_location,l);
+  double r_angle = 0.0;
+  double l_angle = 0.0;
+  if (l_detections.size() != 0) {
+    l_angle = angle(m_location,l_detections.front());
+  }
+  if (r_detections.size() != 0) {
+    r_angle = angle(m_location,l_detections.front());
+  }
   double avg_angle = (l_angle+r_angle)/2.0 - m_direction;
   m_memory += avg_angle*0.1;
   m_memory = limit(m_memory,-1.0,1.0);
@@ -161,7 +165,7 @@ void Robot::Move() {
 }
 
 void Robot::Wander() {
-  for (int i=0; i != 10; ++i) {
+  for (int i=0; i != 1000; ++i) {
     this->Move();
   }
 }
