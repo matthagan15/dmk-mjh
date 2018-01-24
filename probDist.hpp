@@ -8,6 +8,7 @@
 class probDist {
 private:
     std::vector<std::vector<double> > grid;
+    std::vector<std::vector<double> > wall_grid;
     int grid_width;
     int grid_height;
 public:
@@ -18,6 +19,7 @@ public:
     void normalizeDist();
     void addProbMass(int,int, double);
     void shiftMass(int,int);
+    void bayesUp(int, int);
 };
 
 probDist::probDist(int m, int n) {
@@ -25,7 +27,9 @@ probDist::probDist(int m, int n) {
     grid_height = n;
     for (int i=0;i<m;i++) {
         std::vector<double> v(n);
+        std::vector<double> w(n,0.01);
         grid.push_back(v);
+        wall_grid.push_back(w);
     }
 }
 
@@ -87,12 +91,11 @@ void probDist::normalizeDist() {
 
 void probDist::addProbMass(int x, int y, double mass) {
     grid[x][y] += mass;
-    this->normalizeDist();
 }
 
 void probDist::shiftMass(int horiz, int vert) {
     if (horiz > 0) {
-        for (int i=grid_width -1; i!= -1; i--) {
+        for (int i=grid_width -2; i!= -1; i--) {
             for (int j = 0; j != grid_height; j++) {
                 int dest = (i+horiz) >= grid_width -1 ? grid_width - 1 : i + horiz;
                 this->addProbMass(dest,j,grid[i][j]);
@@ -100,7 +103,7 @@ void probDist::shiftMass(int horiz, int vert) {
             }
         }
     } else if (horiz < 0) {
-        for (int i=0; i!=grid_width; i++) {
+        for (int i=1; i!=grid_width; i++) {
             for (int j=0; j!= grid_height; j++) {
                 int dest = (i + horiz) <= 0 ? 0 : i + horiz;
                 this->addProbMass(dest,j,grid[i][j]);
@@ -110,21 +113,39 @@ void probDist::shiftMass(int horiz, int vert) {
     }
     if (vert > 0) {
         for (int i=0; i!= grid_width; i++) {
-            for (int j = grid_height - 1; j != 0; j--) {
+            for (int j = grid_height - 2; j != -1; j--) {
                 int dest = (j+vert) >= grid_height -1 ? grid_height - 1 : j + vert;
+                std::cout << "Coords:" << i << "," << j <<"\n";
+                std::cout << "Mass: " << grid[i][j] << "\n";
+                std::cout << "Dest:" << dest << "\n";
                 this->addProbMass(i,dest,grid[i][j]);
+                std::cout << "Mass at dest: " << grid[i][dest] << "\n";
                 if(j != grid_height - 1) {grid[i][j] = 0.0;}
             }
         }
     } else if (vert < 0) {
         for (int i=0; i!=grid_width; i++) {
-            for (int j=0; j!= grid_height; j++) {
+            for (int j=1; j!= grid_height; j++) {
                 int dest = (j + vert) <= 0 ? 0 : j + vert;
                 this->addProbMass(i,dest,grid[i][j]);
                 if (j!= 0) {grid[i][j] = 0.0;}
             }
         }
     }
+}
+
+void probDist::bayesUp(int dx,int dy) {
+    int i = 0;
+    int j = 0;
+    double pObsWall = 0.9;
+    double pObsNoWall = 0.01;
+    double post;
+    post = (pObsWall*wall_grid[i][j])/(pObsWall*wall_grid[i][j] + pObsNoWall * (1-wall_grid[i][j]));
+    std::cout << "Prior: " << wall_grid[i][j] << "\n";
+    std::cout << "post: " << post << "\n";
+    wall_grid[i][j] = post;
+    // P[wall | obs] = P[obs | wall ] * p[wall] / \sum (P[obs | no wall] * P[no wall] + P[obs | wall] * P[wall])
+
 }
 
 #endif
