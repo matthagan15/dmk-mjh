@@ -16,4 +16,10 @@ int main() {
     */
     Robot robot;
     robot.Wander();
+    probDist pd = probDist(10,10);
+    pd.initRect(0,0,2,2);
+    pd.printDist();
+    pd.shiftMass(2,2);
+    pd.printDist();
+
 }

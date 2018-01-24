@@ -61,9 +61,9 @@ void probDist::initRect(int x1, int y1, int x2, int y2) {
 
 void probDist::printDist() {
     std::cout << "Printing Distribution. \n ***********************************\n";
-    for (int i = grid_width - 1; i >= 0; i--) {
-        std::cout << "row " << i << ": ";
-        for (int j = 0; j < grid_height; j++) {
+    for (int j = grid_height -1; j != -1; j--)  {
+        std::cout << "row " << j << ": ";
+        for (int i = 0; i != grid_width; i++){
             std::cout << grid[i][j] << " | ";
         }
         std::cout << "\n_________________________________\n";
@@ -90,8 +90,41 @@ void probDist::addProbMass(int x, int y, double mass) {
     this->normalizeDist();
 }
 
-// void probDist::shiftMass(int horiz, int vert) {
-//
-// }
+void probDist::shiftMass(int horiz, int vert) {
+    if (horiz > 0) {
+        for (int i=grid_width -1; i!= -1; i--) {
+            for (int j = 0; j != grid_height; j++) {
+                int dest = (i+horiz) >= grid_width -1 ? grid_width - 1 : i + horiz;
+                this->addProbMass(dest,j,grid[i][j]);
+                if (i != grid_width - 1) {grid[i][j] = 0.0;}
+            }
+        }
+    } else if (horiz < 0) {
+        for (int i=0; i!=grid_width; i++) {
+            for (int j=0; j!= grid_height; j++) {
+                int dest = (i + horiz) <= 0 ? 0 : i + horiz;
+                this->addProbMass(dest,j,grid[i][j]);
+                if (i != 0) {grid[i][j] = 0.0;}
+            }
+        }
+    }
+    if (vert > 0) {
+        for (int i=0; i!= grid_width; i++) {
+            for (int j = grid_height - 1; j != 0; j--) {
+                int dest = (j+vert) >= grid_height -1 ? grid_height - 1 : j + vert;
+                this->addProbMass(i,dest,grid[i][j]);
+                if(j != grid_height - 1) {grid[i][j] = 0.0;}
+            }
+        }
+    } else if (vert < 0) {
+        for (int i=0; i!=grid_width; i++) {
+            for (int j=0; j!= grid_height; j++) {
+                int dest = (j + vert) <= 0 ? 0 : j + vert;
+                this->addProbMass(i,dest,grid[i][j]);
+                if (j!= 0) {grid[i][j] = 0.0;}
+            }
+        }
+    }
+}
 
 #endif
