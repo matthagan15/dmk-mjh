@@ -177,7 +177,7 @@ void Robot::Move() {
       }
     }
   }
-  if (best_gap < 0.35 && !equal(m_direction,best_angle)) {
+  if (best_gap < 0.2 && !equal(m_direction,best_angle)) {
     m_direction = fmod(m_direction+M_PI,2.0*M_PI);
   } else {
     m_direction = best_angle;
