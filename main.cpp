@@ -16,23 +16,23 @@ int main() {
     */
     Robot robot;
     robot.Wander();
-    probDist pd = probDist(2,2);
-    pd.initRect(0,0,1,1);
-    pd.printDist();
-    pd.shiftMass(20,0);
-    pd.printDist();
-    pd.shiftMass(0,-20);
-    pd.printDist();
-    pd.shiftMass(0,20);
-    pd.printDist();
-    pd.shiftMass(-20,0);
-    pd.printDist();
-    pd.shiftMass(0,-10);
-    pd.printDist();
-    pd.shiftMass(0,-10);
-    pd.printDist();
-    pd.bayesUp(1,1);
-    pd.bayesUp(1,1);
-    pd.bayesUp(1,1);
+    // probDist pd(2,2);
+    // pd.initRect(0,0,1,1);
+    // pd.writeToFile();
+    // pd.shiftMass(20,0);
+    // pd.writeToFile();
+    // pd.shiftMass(0,-20);
+    // pd.writeToFile();
+    // pd.shiftMass(0,20);
+    // pd.writeToFile();
+    // pd.shiftMass(-20,0);
+    // pd.writeToFile();
+    // pd.shiftMass(0,-10);
+    // pd.writeToFile();
+    // pd.shiftMass(0,-10);
+    // pd.writeToFile();
+    // pd.bayesUp(1,1);
+    // pd.bayesUp(1,1);
+    // pd.bayesUp(1,1);
 
 }
