@@ -31,23 +31,15 @@ int main() {
     // std::cout << intersection[0] << "," << intersection[1] << "\n";
     Robot robot;
     robot.Wander();
-    probDist pd = probDist(2,2);
+    probDist pd = probDist(5,5);
     pd.initRect(0,0,1,1);
     pd.printDist();
-    pd.shiftMass(20,0);
-    pd.printDist();
-    pd.shiftMass(0,-20);
-    pd.printDist();
-    pd.shiftMass(0,20);
-    pd.printDist();
-    pd.shiftMass(-20,0);
-    pd.printDist();
-    pd.shiftMass(0,-10);
-    pd.printDist();
-    pd.shiftMass(0,-10);
-    pd.printDist();
+    pd.printWallDist();
     pd.bayesUp(1,1);
+    pd.printWallDist();
     pd.bayesUp(1,1);
+    pd.printWallDist();
     pd.bayesUp(1,1);
+    pd.printWallDist();
 
 }

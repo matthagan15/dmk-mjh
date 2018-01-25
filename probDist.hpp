@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <vector>
+#include <cmath>
 
 class probDist {
 private:
@@ -20,6 +21,8 @@ public:
     void addProbMass(int,int, double);
     void shiftMass(int,int);
     void bayesUp(int, int);
+    void printWallDist();
+    std::vector<int[2]> getIntersectionsDetection(int x, int y, int dx, int dy);
 };
 
 probDist::probDist(int m, int n) {
@@ -69,6 +72,17 @@ void probDist::printDist() {
         std::cout << "row " << j << ": ";
         for (int i = 0; i != grid_width; i++){
             std::cout << grid[i][j] << " | ";
+        }
+        std::cout << "\n_________________________________\n";
+    }
+}
+
+void probDist::printWallDist() {
+    std::cout << "Printing Wall Distribution. \n ***********************************\n";
+    for (int j = grid_height -1; j != -1; j--)  {
+        std::cout << "row " << j << ": ";
+        for (int i = 0; i != grid_width; i++){
+            std::cout << wall_grid[i][j] << " | ";
         }
         std::cout << "\n_________________________________\n";
     }
@@ -134,18 +148,32 @@ void probDist::shiftMass(int horiz, int vert) {
     }
 }
 
+
+
 void probDist::bayesUp(int dx,int dy) {
-    int i = 0;
-    int j = 0;
-    double pObsWall = 0.9;
+    // P[wall | obs] = P[obs | wall ] * p[wall] / \sum (P[obs | no wall] * P[no wall] + P[obs | wall] * P[wall])
+    double pObsWall = 1.0;
     double pObsNoWall = 0.01;
     double post;
-    post = (pObsWall*wall_grid[i][j])/(pObsWall*wall_grid[i][j] + pObsNoWall * (1-wall_grid[i][j]));
-    std::cout << "Prior: " << wall_grid[i][j] << "\n";
-    std::cout << "post: " << post << "\n";
-    wall_grid[i][j] = post;
-    // P[wall | obs] = P[obs | wall ] * p[wall] / \sum (P[obs | no wall] * P[no wall] + P[obs | wall] * P[wall])
 
+    double distance = std::pow(std::pow(dx,2) + std::pow(dy,2),0.5);
+    double slope = dy/(1.0*dx);
+
+
+    for (int i=0; i != grid_width; i++) {
+        for (int j = 0; j != grid_height; j++) {
+            if (i + dx < 0 || i + dx >= grid_width || j+ dy <0 || j+dy >= grid_height) {continue;}
+            if (grid[i][j] < 1e-10) {continue;}
+            post = (pObsWall*wall_grid[i+dx][j+dy])/(pObsWall*wall_grid[i+dx][j+dy] + pObsNoWall * (1-wall_grid[i+dx][j+dy]));
+            post *= grid[i][j];
+            wall_grid[i+dx][j+dy] = post;
+        }
+    }
+}
+
+std::vector<int[2]> getIntersectionsDetection(int x, int y, double slope, double distance) {
+    std::vector<int[2]> v;
+    return v;
 }
 
 #endif
