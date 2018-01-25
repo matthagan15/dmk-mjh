@@ -123,7 +123,7 @@ bool Polygon::closestIntersection(std::array<double,2>& ray,std::array<double,2>
       }
     } else {
       if (this->isWithinPoints(m_vertices[i],m_vertices[j],
-        point) && equal(angle(source,point),angle(ray))) {
+        point) && equal(getAngle(source,point),getAngle(ray))) {
         double dist = euclideanDistance(point,source);
         if (dist < best_dist) {
           best_dist = dist;

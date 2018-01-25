@@ -1,8 +1,9 @@
 #ifndef probDist_hpp
 #define probDist_hpp
 
-#include <iostream>
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
 #include <vector>
 #include <cmath>
 
@@ -12,17 +13,23 @@ private:
     std::vector<std::vector<double> > wall_grid;
     int grid_width;
     int grid_height;
+    std::ofstream m_outfile;
 public:
     probDist(int, int);
     probDist();
+    ~probDist();
     void initRect(int,int,int,int);
     void printDist();
     void normalizeDist();
     void addProbMass(int,int, double);
     void shiftMass(int,int);
     void bayesUp(int, int);
+<<<<<<< HEAD
     void printWallDist();
     std::vector<int[2]> getIntersectionsDetection(int x, int y, int dx, int dy);
+=======
+    void writeToFile();
+>>>>>>> 6d05e29d65f0b304e9111254c7b840c154ea4c29
 };
 
 probDist::probDist(int m, int n) {
@@ -34,11 +41,16 @@ probDist::probDist(int m, int n) {
         grid.push_back(v);
         wall_grid.push_back(w);
     }
+    m_outfile.open("probDist.txt");
 }
 
 probDist::probDist() {
     std::vector<double> v(0);
     grid.push_back(v);
+}
+
+probDist::~probDist() {
+  m_outfile.close();
 }
 
 void probDist::initRect(int x1, int y1, int x2, int y2) {
@@ -174,6 +186,19 @@ void probDist::bayesUp(int dx,int dy) {
 std::vector<int[2]> getIntersectionsDetection(int x, int y, double slope, double distance) {
     std::vector<int[2]> v;
     return v;
+}
+
+void probDist::writeToFile() {
+  for (int j = grid_height-1; j != -1; j--)  {
+      for (int i = 0; i != grid_width; i++){
+          m_outfile << grid[i][j];
+          if (i != grid_width-1) {
+            m_outfile << ",";
+          }
+      }
+      m_outfile << "\n";
+  }
+  m_outfile << "next\n";
 }
 
 #endif

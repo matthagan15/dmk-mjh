@@ -7,6 +7,7 @@
 #include <cmath>
 #include <array>
 #include <vector>
+#include <map>
 #include "World.hpp"
 
 class Robot
@@ -20,7 +21,7 @@ class Robot
   std::array<double,2> m_location;
   double m_direction;
   std::ofstream m_outfile;
-  int m_memory; // ranges from -1 (left) to 1 (right)
+  int m_memory; // ranges from 0 (right) to 3 (down)
 public:
   Robot();
   ~Robot();
@@ -41,7 +42,7 @@ public:
   double getX();
   double getY();
 private:
-  void Sense(std::vector<std::array<double,2> >&,std::vector<std::array<double,2> >&);
+  void Sense(std::vector<std::array<double,2> >&);
 };
 
 Robot::Robot() {
@@ -49,9 +50,9 @@ Robot::Robot() {
   m_location[1] = 1.0;
   m_direction = 6.1;
   this->setScanResolution(10);
-  this->setScanAccuracy(0.2);
-  this->setScanWidth(0.3);
-  this->setScanPower(1.0);
+  this->setScanAccuracy(1.0);
+  this->setScanWidth(2.0*M_PI);
+  this->setScanPower(1.5);
   this->setStepSize(0.1);
   m_world.writeToFile();
   m_memory = 1;
@@ -114,8 +115,7 @@ double Robot::getScanPower() {
   return m_scan_pow;
 }
 
-void Robot::Sense(std::vector<std::array<double,2> >& l_detections,
-  std::vector<std::array<double,2> >& r_detections) {
+void Robot::Sense(std::vector<std::array<double,2> >& detections) {
   for (int i=0; i!=m_scan_res; ++i) {
     double angle = m_scan_width*i/static_cast<double>(m_scan_res) - m_scan_width/2.0;
     angle += m_direction;
@@ -126,70 +126,36 @@ void Robot::Sense(std::vector<std::array<double,2> >& l_detections,
     std::array<double,2> ping;
     bool found = m_world.closestIntersection(ray,source,ping);
     if (found) {
-      // ping[0] += randDouble(-m_scan_acc,m_scan_acc);
-      // ping[1] += randDouble(-m_scan_acc,m_scan_acc);
-      if (angle > m_direction) {
-        l_detections.push_back(ping);
-      } else {
-        r_detections.push_back(ping);
-      }
+      detections.push_back(ping);
     }
   }
 }
 
 void Robot::Move() {
-  std::vector<std::array<double,2> > l_detections;
-  std::vector<std::array<double,2> > r_detections;
-  this->Sense(l_detections,r_detections);
-  l_detections.insert(l_detections.end(),r_detections.begin(),r_detections.end());
-  this->writeToFile(l_detections);
+  std::vector<std::array<double,2> > detections;
+  this->Sense(detections);
+  this->writeToFile(detections);
 
-  double best_angle = m_direction;
-  double best_gap = 0.0;
-  if (l_detections.size() != 0) {
-    l_detections.push_back(l_detections.back());
-    int best_id = 0;
-    for (int i=0;i!=l_detections.size();++i) {
-      if (i==0) {
-        double high = m_direction+m_scan_width;
-        double low = angle(m_location,l_detections[i]);
-        if (high-low > best_gap) {
-          best_gap = high-low;
-          best_angle = (high+low)/2.0;
-          best_id = i;
-        }
-      } else if (i==l_detections.size()-1) {
-        double high = angle(m_location,l_detections[i]);
-        double low = m_direction-m_scan_width;
-        if (high-low > best_gap) {
-          best_gap = high-low;
-          best_angle = (high+low)/2.0;
-          best_id = i;
-        }
-      } else {
-        double high = angle(m_location,l_detections[i-1]);
-        double low = angle(m_location,l_detections[i]);
-        if (high-low > best_gap) {
-          best_gap = high-low;
-          best_angle = (high+low)/2.0;
-          best_id = i;
-        }
+  size_t num_det = detections.size();
+  for (size_t i=0; i != num_det; ++i) {
+    double dist = euclideanDistance(m_location,detections[i]);
+    if (dist < 3.5*m_step_size) {
+      double angle = fmod(getAngle(m_location,detections[i])+2.0*M_PI,2.0*M_PI);
+      if (static_cast<int>((angle+M_PI_4)/M_PI_2) == m_memory) {
+        m_memory += (randDouble(0.0,1.0)<0.5)? 1 : -1;
+        m_memory = (m_memory+4)%4;  //make it from 0 to 3
       }
     }
   }
-  if (best_gap < 0.35 && !equal(m_direction,best_angle)) {
-    m_direction = fmod(m_direction+M_PI,2.0*M_PI);
+  if (m_memory%2==0) {
+    m_location[0] += (m_memory==0) ? m_step_size:-m_step_size;
   } else {
-    m_direction = best_angle;
+    m_location[1] += (m_memory==1) ? m_step_size:-m_step_size;
   }
-  m_direction = best_angle;
-
-  m_location[0] += m_step_size*cos(m_direction);
-  m_location[1] += m_step_size*sin(m_direction);
 }
 
 void Robot::Wander() {
-  for (int i=0; i != 100; ++i) {
+  for (int i=0; i != 500; ++i) {
     this->Move();
   }
 }

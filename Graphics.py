@@ -25,9 +25,30 @@ for line in file_world:	# each line represents a series of x,y points in a path 
         obs.append(numbers)
     list_obs.append(obs)
 
+filename = 'probDist.txt'
+file_pd = open(filename,'r')
+
+pdists = []
+grid = []
+for line in file_pd:
+    line = line[:-1]
+    if line[0].isalpha():
+        pdists.append(grid)
+        grid = []
+        continue
+    grid.append([float(w) for w in line.split(',')])
+
+# plt.figure()
+# img = plt.imshow(pdists[0], cmap='hot', interpolation='nearest')
+# img.norm.vmin = 0
+# img.norm.vmax = 1
+# for pd in pdists:
+#     img.set_data(pd)
+#     plt.draw()
+#     plt.pause(0.1)
+
 filename = 'robot.txt'
 file_robot = open(filename,'r')
-
 
 detections = []
 data = []
@@ -82,12 +103,10 @@ for i in range(len(data)):
         pings.set_data(xdet,ydet)
     else:
         pings.set_data([],[])
-    th1 = radToDeg(th-scan_width)
-    th2 = radToDeg(th+scan_width)
     if i != 0:
         scanner.remove()
-    scanner = patches.Wedge((x, y),scan_pow, th1, th2,alpha=0.3,color='red')
+    scanner = patches.Wedge((x, y),scan_pow, 0, 360,alpha=0.3,color='red')
     ax.add_patch(scanner)
     plt.draw()
-    plt.pause(0.1)
+    plt.pause(0.01)
 plt.show()

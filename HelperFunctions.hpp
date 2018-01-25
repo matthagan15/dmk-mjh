@@ -17,7 +17,7 @@ bool equal(const double a, const double b, double epsilon=0.000001) {
 }
 
 template<class T>
-double angle(const T& v1, const T& v2) {
+double getAngle(const T& v1, const T& v2) {
   if (equal(v1[0],v2[0])) {
     return v2[1] > v1[1] ? M_PI_2 : -M_PI_2;
   }
@@ -25,7 +25,7 @@ double angle(const T& v1, const T& v2) {
 }
 
 template<class T>
-double angle(const T& v1) {
+double getAngle(const T& v1) {
   if (equal(v1[0],0.0)) {
     return v1[1] > 0.0 ? M_PI_2 : -M_PI_2;
   }
