@@ -24,12 +24,11 @@ public:
     void addProbMass(int,int, double);
     void shiftMass(int,int);
     void bayesUp(int, int);
-<<<<<<< HEAD
+
     void printWallDist();
-    std::vector<int[2]> getIntersectionsDetection(int x, int y, int dx, int dy);
-=======
+    std::vector<std::array<int,2> > getIntersectionsDetection(int x, int y, double slope, double angle);
     void writeToFile();
->>>>>>> 6d05e29d65f0b304e9111254c7b840c154ea4c29
+    std::array<int,2> getClosestGridPoint(double , double );
 };
 
 probDist::probDist(int m, int n) {
@@ -164,28 +163,93 @@ void probDist::shiftMass(int horiz, int vert) {
 
 void probDist::bayesUp(int dx,int dy) {
     // P[wall | obs] = P[obs | wall ] * p[wall] / \sum (P[obs | no wall] * P[no wall] + P[obs | wall] * P[wall])
-    double pObsWall = 1.0;
-    double pObsNoWall = 0.01;
+    double pObsGivenWall = 0.95;
+    double pObsGivenNoWall = 0.01;
+    double pNoObsGivenWall = 0.05;
+    double pNoObsGivenNoWall = 0.99;
     double post;
-
+    double num;
+    double den;
     double distance = std::pow(std::pow(dx,2) + std::pow(dy,2),0.5);
     double slope = dy/(1.0*dx);
-
+    int x;
+    int y;
+    std::array<int,2> detectPt;
+    std::vector<std::array<int,2>> grid_pts;
 
     for (int i=0; i != grid_width; i++) {
         for (int j = 0; j != grid_height; j++) {
             if (i + dx < 0 || i + dx >= grid_width || j+ dy <0 || j+dy >= grid_height) {continue;}
             if (grid[i][j] < 1e-10) {continue;}
-            post = (pObsWall*wall_grid[i+dx][j+dy])/(pObsWall*wall_grid[i+dx][j+dy] + pObsNoWall * (1-wall_grid[i+dx][j+dy]));
-            post *= grid[i][j];
-            wall_grid[i+dx][j+dy] = post;
+
+            grid_pts = this->getIntersectionsDetection(i,j,slope,distance);
+
+            detectPt = this->getClosestGridPoint(i+dx,j+dy);
+            std::cout << "Detect point: " << detectPt[0] << "," << detectPt[1] << "\n";
+            if (std::find(grid_pts.begin(),grid_pts.end(), detectPt) == grid_pts.end()) {grid_pts.push_back(detectPt);}
+            for (int k=0; k != grid_pts.size();k++) {
+
+                // P[no wall| no obs] = P[No obs | no wall] * P[no wall] / (p[no obs|no wall]*p[no wall] + p[no obs|wall] * p[wall])
+                x = grid_pts[k][0];
+                y = grid_pts[k][1];
+
+                std::cout << "Printing Bayes up grids along detection line. \n";
+                for (int l=0; l != grid_pts.size();l++) {
+                    std::cout << "Pt: " << grid_pts[l][0] << "," << grid_pts[l][1] << "\n";
+                }
+
+                if (x >= grid_width || x < 0 || y < 0 || y >= grid_height) continue;
+                if (x != detectPt[0] && y != detectPt[1]) {
+                    std::cout << "No Detection here: " << x << "," << y << "\n";
+                    num = pNoObsGivenNoWall * (1.0 - wall_grid[x][y]);
+                    den = num + pNoObsGivenWall * wall_grid[x][y];
+                    post = (num/den)*grid[i][j];
+                } else {
+                    std::cout << "Detection here: " << x << "," << y << "\n";
+                    x = grid_pts[k][0];
+                    y = grid_pts[k][1];
+                    post = (pObsGivenWall*wall_grid[x][y])/(pObsGivenWall*wall_grid[x][y] + pObsGivenNoWall * (1-wall_grid[x][y]));
+                    post *= grid[i][j];
+                    wall_grid[x][y] = post;
+                }
+            }
+
         }
     }
 }
 
-std::vector<int[2]> getIntersectionsDetection(int x, int y, double slope, double distance) {
-    std::vector<int[2]> v;
+std::vector<std::array<int,2> > probDist::getIntersectionsDetection(int x, int y, double slope, double distance) {
+    std::vector<std::array<int,2> > v;
+    double curr_dist = 0.0;
+    double dx = 0.1;
+    double dy = slope*dx;
+    double px = 1.0*x;
+    double py = 1.0*y;
+    double dz = std::pow(std::pow(dx,2) + std::pow(dy,2),0.5);
+    std::array<int,2> grid_pt = {{x,y}};
+    v.push_back(grid_pt);
+    while(curr_dist <= distance) {
+        px = px + dx;
+        py = py + dy;
+        curr_dist += dz;
+        grid_pt = this->getClosestGridPoint(px,py);
+        if(std::find(v.begin(), v.end(), grid_pt) != v.end()) {
+            continue;
+        } else {
+            v.push_back(grid_pt);
+        }
+    }
     return v;
+}
+
+
+std::array<int,2> probDist::getClosestGridPoint(double x, double y) {
+    std::array<int,2> returner;
+    int xpt = std::round(x);
+    int ypt = std::round(y);
+    returner[0] = xpt;
+    returner[1] = ypt;
+    return returner;
 }
 
 void probDist::writeToFile() {
