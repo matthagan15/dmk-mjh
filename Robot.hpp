@@ -135,6 +135,7 @@ void Robot::Move() {
   std::vector<std::array<double,2> > detections;
   this->Sense(detections);
   this->writeToFile(detections);
+  subtract(detections,m_location);
 
   size_t num_det = detections.size();
   for (size_t i=0; i != num_det; ++i) {

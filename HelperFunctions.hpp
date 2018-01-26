@@ -79,4 +79,22 @@ double limit(const double x, const double low, const double high) {
   return x;
 }
 
+template<class T>
+void subtract(T& vecA,const T& vecB) {
+  size_t size = vecB.size();
+  for (size_t i=0; i!=size;++i) {
+    vecA[i] -= vecB[i];
+  }
+}
+
+template<class T>
+void subtract(std::vector<T>& A, const T& B) {
+  typedef typename std::vector<T>::iterator iter;
+  for (iter i=A.begin();i!=A.end();++i) {
+    subtract(*i,B);
+  }
+}
+
+
+
 #endif
