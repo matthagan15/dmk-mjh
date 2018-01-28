@@ -5,3 +5,8 @@ Gameplan:
         -An HMM class. Do we want this separate and more general, or very integrated into the robot
         -Robot class, should basically be a wrapper/storage for holding location and data,
         as well as updating location and issuing commands.
+
+
+Transition model:
+    *Class that has access to a probability distribution and robot, tells robot how to move.
+    *Should probability distribution of robot location update with observations of walls?

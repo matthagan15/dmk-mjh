@@ -15,23 +15,30 @@ private:
     int grid_width;
     int grid_height;
     std::ofstream m_outfile;
+    double world_width;
+    double world_height;
+    double unit_width;
+    double unit_height;
 public:
     probDist(int, int);
     probDist();
     ~probDist();
     void initRect(int,int,int,int);
+    void setWidthHeight(double,double);
     void printDist();
     void normalizeDist();
     void addProbMass(int,int, double);
     void shiftMass(int,int);
     void bayesUp(int, int);
-
+    std::vector<std::array<int,2>> gridify(std::vector<std::array<double,2>>);
+    void update(std::vector<std::array<double,2>>);
     void printWallDist();
     std::vector<std::array<int,2> > getIntersectionsDetection(int x, int y, double slope, double angle);
     void writeToFile();
     std::array<int,2> getClosestGridPoint(double , double );
     void bayesUpOne(int,int,bool,double);
     void bayesUpBatch(std::vector<std::array<int,2>>);
+    void setRobotLocation(std::array<double,2> &loc);
 };
 
 probDist::probDist(int m, int n) {
@@ -53,6 +60,21 @@ probDist::probDist() {
 
 probDist::~probDist() {
   m_outfile.close();
+}
+
+void probDist::setRobotLocation(std::array<double,2> &loc) {
+    int x;
+    int y;
+    x = std::round(loc[0]/this->unit_width);
+    y = std::round(loc[1]/this->unit_height);
+    this->addProbMass(x,y,1.0);
+}
+
+void probDist::setWidthHeight(double map_width, double map_height) {
+    this->world_width = map_width;
+    this->world_height = map_height;
+    this->unit_width = map_width/(1.0*this->grid_width);
+    this->unit_height = map_height/(1.0*this->grid_height);
 }
 
 void probDist::initRect(int x1, int y1, int x2, int y2) {
@@ -245,6 +267,7 @@ void probDist::bayesUpBatch(std::vector<std::array<int,2>> v) {
     std::array<int,2> pt;
     for (int i=0; i != v.size();i++) {
         pt = v[i];
+        std::cout << "Point update: " << pt[0] << "," << pt[1] << "\n";
         this->bayesUp(pt[0],pt[1]);
     }
 }
@@ -258,14 +281,6 @@ std::vector<std::array<int,2> > probDist::getIntersectionsDetection(int x, int y
     double theta = slope;
     dx = std::cos(theta)*0.1;
     dy = std::sin(theta)*0.1;
-
-    // if (slope > 1e10) {
-    //     dy = 0.1;
-    //     dx = 0;
-    // } else {
-    //     dx = 0.1;
-    //     dy = slope*dx;
-    // }
 
     double px = 1.0*x;
     double py = 1.0*y;
@@ -289,6 +304,30 @@ std::vector<std::array<int,2> > probDist::getIntersectionsDetection(int x, int y
     return v;
 }
 
+std::vector<std::array<int,2>> probDist::gridify(std::vector<std::array<double,2>> info) {
+    std::vector<std::array<int,2 >> outputVec;
+    double x;
+    double y;
+    int grid_x;
+    int grid_y;
+    std::array<double,2> double_pt;
+    for (int i=0;i != info.size();i++) {
+        double_pt = info[i];
+        x = double_pt[0];
+        y = double_pt[1];
+        x = x/this->unit_width;
+        y = y/this->unit_height;
+        grid_x = std::round(x);
+        grid_y = std::round(y);
+        outputVec.push_back(std::array<int,2> {{grid_x,grid_y}});
+    }
+    return outputVec;
+}
+
+void probDist::update(std::vector<std::array<double,2>> info) {
+    std::vector<std::array<int,2>> grid_info = probDist::gridify(info);
+    probDist::bayesUpBatch(grid_info);
+}
 
 std::array<int,2> probDist::getClosestGridPoint(double x, double y) {
     std::array<int,2> returner;
