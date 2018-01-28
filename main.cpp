@@ -17,7 +17,6 @@ int main() {
     */
     Robot robot;
     robot.Wander();
-    robot.getProbDist().printDist();
     // probDist pd(20,20);
     // pd.setWidthHeight(2.0,2.0);
     // std::array<double,2> init_loc = {{1.0,1.0}};

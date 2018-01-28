@@ -28,13 +28,15 @@ public:
     void printDist();
     void normalizeDist();
     void addProbMass(int,int, double);
+    void shiftMass(std::array<double,2>&);
     void shiftMass(int,int);
     void bayesUp(int, int);
-    std::vector<std::array<int,2>> gridify(std::vector<std::array<double,2>>);
-    void update(std::vector<std::array<double,2>>);
+    std::array<int,2> gridify(const std::array<double,2>&);
+    std::vector<std::array<int,2> > gridify(const std::vector<std::array<double,2> >&);
+    void update(std::vector<std::array<double,2> >);
     void printWallDist();
     std::vector<std::array<int,2> > getIntersectionsDetection(int x, int y, double slope, double angle);
-    void writeToFile();
+    void writeToFile(std::ofstream& outfile);
     std::array<int,2> getClosestGridPoint(double , double );
     void bayesUpOne(int,int,bool,double);
     void bayesUpBatch(std::vector<std::array<int,2>>);
@@ -44,9 +46,10 @@ public:
 probDist::probDist(int m, int n) {
     grid_width = m;
     grid_height = n;
+    const double init_prob = 0.8;
     for (int i=0;i<m;i++) {
         std::vector<double> v(n);
-        std::vector<double> w(n,0.01);
+        std::vector<double> w(n,init_prob);
         grid.push_back(v);
         wall_grid.push_back(w);
     }
@@ -141,6 +144,11 @@ void probDist::normalizeDist() {
 
 void probDist::addProbMass(int x, int y, double mass) {
     grid[x][y] += mass;
+}
+
+void probDist::shiftMass(std::array<double,2>& shift) {
+  std::array<int,2> int_shift = probDist::gridify(shift);
+  this->shiftMass(int_shift[0],int_shift[1]);
 }
 
 void probDist::shiftMass(int horiz, int vert) {
@@ -304,22 +312,23 @@ std::vector<std::array<int,2> > probDist::getIntersectionsDetection(int x, int y
     return v;
 }
 
-std::vector<std::array<int,2>> probDist::gridify(std::vector<std::array<double,2>> info) {
-    std::vector<std::array<int,2 >> outputVec;
-    double x;
-    double y;
-    int grid_x;
-    int grid_y;
-    std::array<double,2> double_pt;
-    for (int i=0;i != info.size();i++) {
-        double_pt = info[i];
-        x = double_pt[0];
-        y = double_pt[1];
-        x = x/this->unit_width;
-        y = y/this->unit_height;
-        grid_x = std::round(x);
-        grid_y = std::round(y);
-        outputVec.push_back(std::array<int,2> {{grid_x,grid_y}});
+std::array<int,2> probDist::gridify(const std::array<double,2>& pt) {
+  double x = pt[0]/this->unit_width;
+  double y = pt[1]/this->unit_height;
+  int grid_x = std::floor(x);
+  int grid_y = std::floor(y);
+  std::array<int,2> ret = {{grid_x,grid_y}};
+  return ret;
+}
+
+
+std::vector<std::array<int,2> > probDist::gridify(const std::vector<std::array<double,2> >& info) {
+    std::vector<std::array<int,2 > > outputVec;
+    size_t size = info.size();
+    outputVec.reserve(size);
+    for (size_t i=0;i != size;i++) {
+        std::array<int,2> new_pt = probDist::gridify(info[i]);
+        outputVec.push_back(new_pt);
     }
     return outputVec;
 }
@@ -338,17 +347,27 @@ std::array<int,2> probDist::getClosestGridPoint(double x, double y) {
     return returner;
 }
 
-void probDist::writeToFile() {
+void probDist::writeToFile(std::ofstream& outfile) {
+  outfile << "wall_dist\n";
   for (int j = grid_height-1; j != -1; j--)  {
       for (int i = 0; i != grid_width; i++){
-          m_outfile << grid[i][j];
+          outfile << wall_grid[i][j];
           if (i != grid_width-1) {
-            m_outfile << ",";
+            outfile << ",";
           }
       }
-      m_outfile << "\n";
+      outfile << "\n";
   }
-  m_outfile << "next\n";
+  outfile << "robot_dist\n";
+  for (int j = grid_height-1; j != -1; j--)  {
+      for (int i = 0; i != grid_width; i++){
+          outfile << grid[i][j];
+          if (i != grid_width-1) {
+            outfile << ",";
+          }
+      }
+      outfile << "\n";
+  }
 }
 
 #endif

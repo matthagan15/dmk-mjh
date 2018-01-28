@@ -48,11 +48,11 @@ private:
   void Sense(std::vector<std::array<double,2> >&);
 };
 
-Robot::Robot(): m_pd(50,50) {
-  m_location[0] = 1.0;
-  m_location[1] = 1.0;
-  m_direction = 6.1;
-  this->setScanResolution(10);
+Robot::Robot(): m_pd(100,100) {
+  m_location[0] = 4.0;
+  m_location[1] = 0.5;
+  m_direction = 0.0;
+  this->setScanResolution(20);
   this->setScanAccuracy(1.0);
   this->setScanWidth(2.0*M_PI);
   this->setScanPower(1.5);
@@ -166,12 +166,15 @@ void Robot::Move() {
 }
 
 void Robot::Wander() {
-  for (int i=0; i != 10; ++i) {
+  std::array<double,2> shift = {{0.2,0.0}};
+  for (int i=0; i != 25; ++i) {
     std::vector<std::array<double,2> > detections;
     this->Sense(detections);
     m_pd.update(detections);
     this->writeToFile(detections);
-    m_pd.printWallDist();
+    m_location[0] += shift[0];
+    m_location[1] += shift[1];
+    m_pd.shiftMass(shift);
   }
 }
 
@@ -185,6 +188,7 @@ void Robot::writeToFile(std::vector<std::array<double,2> >& detections) {
   for (size_t i=0;i!=size;++i) {
     m_outfile << detections[i][0] << "," << detections[i][1] << "\n";
   }
+  m_pd.writeToFile(m_outfile);
   m_outfile << "end\n";
 }
 

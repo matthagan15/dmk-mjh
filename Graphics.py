@@ -25,18 +25,6 @@ for line in file_world:	# each line represents a series of x,y points in a path 
         obs.append(numbers)
     list_obs.append(obs)
 
-filename = 'probDist.txt'
-file_pd = open(filename,'r')
-
-pdists = []
-grid = []
-for line in file_pd:
-    line = line[:-1]
-    if line[0].isalpha():
-        pdists.append(grid)
-        grid = []
-        continue
-    grid.append([float(w) for w in line.split(',')])
 
 # plt.figure()
 # img = plt.imshow(pdists[0], cmap='hot', interpolation='nearest')
@@ -52,6 +40,10 @@ file_robot = open(filename,'r')
 
 detections = []
 data = []
+wall_grids = []
+robot_grids = []
+wall_grid = []
+robot_grid = []
 for line in file_robot:
     line = line[:-1]
     if line[0].isalpha():
@@ -66,38 +58,60 @@ for line in file_robot:
         continue
     if mode == 'detections':
         x,y = [float(w) for w in line.split(',')]
-        detections.append([x,y])
+        detections.append([position[0]+x,position[1]+y])
+        continue
+    if mode == 'wall_dist':
+        wall_grid.append([float(w) for w in line.split(',')])
+        continue
+    if mode == 'robot_dist':
+        robot_grid.append([float(w) for w in line.split(',')])
         continue
     if mode == 'end':
         data.append([position,detections])
         detections = []
+        wall_grids.append(wall_grid)
+        wall_grid = []
+        robot_grids.append(robot_grid)
+        robot_grid = []
         continue
 
 def radToDeg(x):
     return x*180.0/math.pi
 
-fig, ax = plt.subplots()
+
 obstacles = []
 for verts in list_obs:
     polygon = patches.Polygon(verts, True)
     obstacles.append(polygon)
-p = PatchCollection(obstacles, alpha=1.0,color='black')
-ax.add_collection(p)
-plt.xlim(0,10)
-plt.ylim(0,10)
-ax.yaxis.set_visible(False)
-ax.xaxis.set_visible(False)
 
+fig = plt.figure(figsize=(6,6))
+ax1 = fig.add_subplot(1, 1, 1)
+# ax2 = fig.add_subplot(1, 2, 2)
+# ax3 = fig.add_subplot(2, 2, 4)
+p = PatchCollection(obstacles, alpha=0.1,color='black')
+ax1.add_collection(p)
+# plt.xlim(0,10)
+# plt.ylim(0,10)
+ax1.yaxis.set_visible(False)
+ax1.xaxis.set_visible(False)
+ax1.set_aspect('equal', 'datalim')
 
-robot, = plt.plot([],[],'bo')
-pings, = plt.plot([],[],'r.')
+# robot, = ax1.plot([],[],'bo')
+pings, = ax1.plot([],[],'r.')
+wallDist = ax1.imshow(wall_grids[0], cmap='binary',aspect='equal',extent=(0,10,0,10),alpha=0.7)
+wallDist.norm.vmin = 0
+wallDist.norm.vmax = 1
+robotDist = ax1.imshow(robot_grids[0], cmap='Reds',aspect='equal',extent=(0,10,0,10),alpha=0.5)
+robotDist.norm.vmin = 0
+robotDist.norm.vmax = 1
+
 
 for i in range(len(data)):
     #unpack
     x,y,th = data[i][0]
     det = data[i][1]
 
-    robot.set_data(x,y)
+    # robot.set_data(x,y)
     if len(det) != 0:
         xdet,ydet = zip(*det)
         pings.set_data(xdet,ydet)
@@ -106,7 +120,9 @@ for i in range(len(data)):
     if i != 0:
         scanner.remove()
     scanner = patches.Wedge((x, y),scan_pow, 0, 360,alpha=0.3,color='red')
-    ax.add_patch(scanner)
+    ax1.add_patch(scanner)
+    wallDist.set_data(wall_grids[i])
+    robotDist.set_data(robot_grids[i])
     plt.draw()
-    plt.pause(0.01)
+    plt.pause(0.3)
 plt.show()
