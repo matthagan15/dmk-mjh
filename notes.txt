@@ -10,3 +10,4 @@ Gameplan:
 Transition model:
     *Class that has access to a probability distribution and robot, tells robot how to move.
     *Should probability distribution of robot location update with observations of walls?
+    
