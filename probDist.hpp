@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <iomanip>
 
 class probDist {
 private:
@@ -29,6 +30,8 @@ public:
     std::vector<std::array<int,2> > getIntersectionsDetection(int x, int y, double slope, double angle);
     void writeToFile();
     std::array<int,2> getClosestGridPoint(double , double );
+    void bayesUpOne(int,int,bool,double);
+    void bayesUpBatch(std::vector<std::array<int,2>>);
 };
 
 probDist::probDist(int m, int n) {
@@ -93,7 +96,7 @@ void probDist::printWallDist() {
     for (int j = grid_height -1; j != -1; j--)  {
         std::cout << "row " << j << ": ";
         for (int i = 0; i != grid_width; i++){
-            std::cout << wall_grid[i][j] << " | ";
+            std::cout << std::setprecision(4) << 1.0*wall_grid[i][j] << " | ";
         }
         std::cout << "\n_________________________________\n";
     }
@@ -159,10 +162,7 @@ void probDist::shiftMass(int horiz, int vert) {
     }
 }
 
-
-
-void probDist::bayesUp(int dx,int dy) {
-    // P[wall | obs] = P[obs | wall ] * p[wall] / \sum (P[obs | no wall] * P[no wall] + P[obs | wall] * P[wall])
+void probDist::bayesUpOne(int x, int y, bool hit, double prob) {
     double pObsGivenWall = 0.95;
     double pObsGivenNoWall = 0.01;
     double pNoObsGivenWall = 0.05;
@@ -170,69 +170,116 @@ void probDist::bayesUp(int dx,int dy) {
     double post;
     double num;
     double den;
+    double offset;
+    offset =
+    if (hit) {
+        // std::cout << "Detection here: " << x << "," << y << "\n";
+        num = (pObsGivenWall*wall_grid[x][y]);
+        den = pObsGivenWall*wall_grid[x][y] + pObsGivenNoWall * (1-wall_grid[x][y]);
+        post = num/den;
+        post *= prob;
+        wall_grid[x][y] = post;
+    } else {
+        // std::cout << "No Detection here: " << x << "," << y << "\n";
+        num = pNoObsGivenNoWall * (1.0 - wall_grid[x][y]);
+        den = num + pNoObsGivenWall * wall_grid[x][y];
+        post = (num/den);
+        // Sets to 1-posterior because is calculating P[no wall | no obs] = 1 - P[wall | no obs]
+        wall_grid[x][y] = prob*(1-post);
+    }
+}
+
+
+
+void probDist::bayesUp(int dx,int dy) {
     double distance = std::pow(std::pow(dx,2) + std::pow(dy,2),0.5);
-    double slope = dy/(1.0*dx);
+    double slope = std::atan2(dy,dx);
+
+    // std::cout << "dx: " << dx << "\n";
+    // std::cout << "dy: " << dy << "\n";
+    // std::cout << "Slope: " << slope << "\n";
+    // std::cout << "Dist: " << distance << "\n";
     int x;
     int y;
+    bool bayesHit;
     std::array<int,2> detectPt;
     std::vector<std::array<int,2>> grid_pts;
 
     for (int i=0; i != grid_width; i++) {
         for (int j = 0; j != grid_height; j++) {
+            // This is going through entire grid. Idea is to process a detection at each point.
+
+            // TODO: Update robot location probability given a detection of certain distance from wall. If you
+            // observer something two points away, there is no way you are at edge of map.
             if (i + dx < 0 || i + dx >= grid_width || j+ dy <0 || j+dy >= grid_height) {continue;}
-            if (grid[i][j] < 1e-10) {continue;}
+            if (grid[i][j] < 1e-4) {continue;}
 
+            // std::cout << "Bayes up is currently at: " << i << "," << j << "\n";
             grid_pts = this->getIntersectionsDetection(i,j,slope,distance);
-
             detectPt = this->getClosestGridPoint(i+dx,j+dy);
-            std::cout << "Detect point: " << detectPt[0] << "," << detectPt[1] << "\n";
+
+            // std::cout << "Detect point: " << detectPt[0] << "," << detectPt[1] << "\n";
+
+            // This if puts detection pt in grid_pts vector if it is not.
             if (std::find(grid_pts.begin(),grid_pts.end(), detectPt) == grid_pts.end()) {grid_pts.push_back(detectPt);}
             for (int k=0; k != grid_pts.size();k++) {
-
+                // std::cout << "Detection line point" << k <<": " << grid_pts[k][0] << "," << grid_pts[k][1] << "\n";
+            }
+            for (int k=0; k != grid_pts.size();k++) {
                 // P[no wall| no obs] = P[No obs | no wall] * P[no wall] / (p[no obs|no wall]*p[no wall] + p[no obs|wall] * p[wall])
                 x = grid_pts[k][0];
                 y = grid_pts[k][1];
-
-                std::cout << "Printing Bayes up grids along detection line. \n";
-                for (int l=0; l != grid_pts.size();l++) {
-                    std::cout << "Pt: " << grid_pts[l][0] << "," << grid_pts[l][1] << "\n";
-                }
-
                 if (x >= grid_width || x < 0 || y < 0 || y >= grid_height) continue;
-                if (x != detectPt[0] && y != detectPt[1]) {
-                    std::cout << "No Detection here: " << x << "," << y << "\n";
-                    num = pNoObsGivenNoWall * (1.0 - wall_grid[x][y]);
-                    den = num + pNoObsGivenWall * wall_grid[x][y];
-                    post = (num/den)*grid[i][j];
-                } else {
-                    std::cout << "Detection here: " << x << "," << y << "\n";
-                    x = grid_pts[k][0];
-                    y = grid_pts[k][1];
-                    post = (pObsGivenWall*wall_grid[x][y])/(pObsGivenWall*wall_grid[x][y] + pObsGivenNoWall * (1-wall_grid[x][y]));
-                    post *= grid[i][j];
-                    wall_grid[x][y] = post;
-                }
+
+                // std::cout << "Bayes update at: " << grid_pts[k][0] << "," << grid_pts[k][1] << "\n";
+                // Updates bayesHit boolean to give whether current line of sight is the wall hit or not.
+                bayesHit =  (x == detectPt[0] && y == detectPt[1]) ? true : false;
+                this->bayesUpOne(x,y,bayesHit,grid[i][j]);
             }
 
         }
     }
 }
 
+void probDist::bayesUpBatch(std::vector<std::array<int,2>> v) {
+    std::array<int,2> pt;
+    for (int i=0; i != v.size();i++) {
+        pt = v[i];
+        this->bayesUp(pt[0],pt[1]);
+    }
+}
+
 std::vector<std::array<int,2> > probDist::getIntersectionsDetection(int x, int y, double slope, double distance) {
     std::vector<std::array<int,2> > v;
     double curr_dist = 0.0;
-    double dx = 0.1;
-    double dy = slope*dx;
+    double dx;
+    double dy;
+
+    double theta = slope;
+    dx = std::cos(theta)*0.1;
+    dy = std::sin(theta)*0.1;
+
+    // if (slope > 1e10) {
+    //     dy = 0.1;
+    //     dx = 0;
+    // } else {
+    //     dx = 0.1;
+    //     dy = slope*dx;
+    // }
+
     double px = 1.0*x;
     double py = 1.0*y;
     double dz = std::pow(std::pow(dx,2) + std::pow(dy,2),0.5);
     std::array<int,2> grid_pt = {{x,y}};
     v.push_back(grid_pt);
+    // std::cout << "************************************************\nPrinting out getIntersectionsDetection\n";
     while(curr_dist <= distance) {
         px = px + dx;
         py = py + dy;
+        // std::cout << "px,py: " << px << ", " << py << "\n";
         curr_dist += dz;
         grid_pt = this->getClosestGridPoint(px,py);
+        // std::cout << "grid_pt: " << grid_pt[0] << "," << grid_pt[1] << "\n";
         if(std::find(v.begin(), v.end(), grid_pt) != v.end()) {
             continue;
         } else {
