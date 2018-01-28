@@ -171,7 +171,7 @@ void probDist::bayesUpOne(int x, int y, bool hit, double prob) {
     double num;
     double den;
     double offset;
-    offset =
+
     if (hit) {
         // std::cout << "Detection here: " << x << "," << y << "\n";
         num = (pObsGivenWall*wall_grid[x][y]);
