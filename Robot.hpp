@@ -45,7 +45,8 @@ public:
   double getY();
   probDist& getProbDist();
 private:
-  void Sense(std::vector<std::array<double,2> >&);
+  void Sense(std::vector<std::array<double,2> >&,
+              std::vector<std::array<double,2> >&);
 };
 
 Robot::Robot(): m_pd(100,100) {
@@ -124,7 +125,8 @@ double Robot::getScanPower() {
   return m_scan_pow;
 }
 
-void Robot::Sense(std::vector<std::array<double,2> >& detections) {
+void Robot::Sense(std::vector<std::array<double,2> >& detections,
+                  std::vector<std::array<double,2> >& non_detections) {
   for (int i=0; i!=m_scan_res; ++i) {
     double angle = m_scan_width*i/static_cast<double>(m_scan_res) - m_scan_width/2.0;
     angle += m_direction;
@@ -137,6 +139,8 @@ void Robot::Sense(std::vector<std::array<double,2> >& detections) {
     if (found) {
       subtract(ping,source);
       detections.push_back(ping);
+    } else {
+      non_detections.push_back(ray);
     }
   }
 }
@@ -169,8 +173,9 @@ void Robot::Wander() {
   std::array<double,2> shift = {{0.2,0.0}};
   for (int i=0; i != 25; ++i) {
     std::vector<std::array<double,2> > detections;
-    this->Sense(detections);
-    m_pd.update(detections);
+    std::vector<std::array<double,2> > non_detections;
+    this->Sense(detections,non_detections);
+    m_pd.update(detections,non_detections);
     this->writeToFile(detections);
     m_location[0] += shift[0];
     m_location[1] += shift[1];

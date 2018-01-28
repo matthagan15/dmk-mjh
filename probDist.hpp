@@ -33,7 +33,7 @@ public:
     void bayesUp(int, int);
     std::array<int,2> gridify(const std::array<double,2>&);
     std::vector<std::array<int,2> > gridify(const std::vector<std::array<double,2> >&);
-    void update(std::vector<std::array<double,2> >);
+    void update(std::vector<std::array<double,2> >&, std::vector<std::array<double,2> >&);
     void printWallDist();
     std::vector<std::array<int,2> > getIntersectionsDetection(int x, int y, double slope, double angle);
     void writeToFile(std::ofstream& outfile);
@@ -333,9 +333,12 @@ std::vector<std::array<int,2> > probDist::gridify(const std::vector<std::array<d
     return outputVec;
 }
 
-void probDist::update(std::vector<std::array<double,2>> info) {
-    std::vector<std::array<int,2>> grid_info = probDist::gridify(info);
-    probDist::bayesUpBatch(grid_info);
+void probDist::update(std::vector<std::array<double,2> >& det,
+                        std::vector<std::array<double,2> >& ndet) {
+    std::vector<std::array<int,2>> grid_det = probDist::gridify(det);
+    std::vector<std::array<int,2>> grid_ndet = probDist::gridify(ndet);
+    probDist::bayesUpBatch(grid_det,true);
+    probDist::bayesUpBatch(grid_ndet,false);
 }
 
 std::array<int,2> probDist::getClosestGridPoint(double x, double y) {
