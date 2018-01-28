@@ -81,6 +81,7 @@ double limit(const double x, const double low, const double high) {
 
 template<class T>
 void subtract(T& vecA,const T& vecB) {
+  // subtract B from A
   size_t size = vecB.size();
   for (size_t i=0; i!=size;++i) {
     vecA[i] -= vecB[i];
@@ -89,6 +90,7 @@ void subtract(T& vecA,const T& vecB) {
 
 template<class T>
 void subtract(std::vector<T>& A, const T& B) {
+  // subtract B from A
   typedef typename std::vector<T>::iterator iter;
   for (iter i=A.begin();i!=A.end();++i) {
     subtract(*i,B);

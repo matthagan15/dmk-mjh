@@ -9,6 +9,7 @@
 #include <vector>
 #include <map>
 #include "World.hpp"
+#include "probDist.hpp"
 
 class Robot
 {
@@ -22,6 +23,7 @@ class Robot
   double m_direction;
   std::ofstream m_outfile;
   int m_memory; // ranges from 0 (right) to 3 (down)
+  probDist m_pd;
 public:
   Robot();
   ~Robot();
@@ -41,11 +43,12 @@ public:
   double getDirection();
   double getX();
   double getY();
+  probDist& getProbDist();
 private:
   void Sense(std::vector<std::array<double,2> >&);
 };
 
-Robot::Robot() {
+Robot::Robot(): m_pd(50,50) {
   m_location[0] = 1.0;
   m_location[1] = 1.0;
   m_direction = 6.1;
@@ -57,6 +60,8 @@ Robot::Robot() {
   m_world.writeToFile();
   m_memory = 1;
   m_outfile.open("robot.txt");
+  m_pd.setWidthHeight(m_world.getBounds()[0][1],m_world.getBounds()[1][1]);
+  m_pd.setRobotLocation(m_location);
 }
 
 Robot::~Robot() {
@@ -69,6 +74,10 @@ double Robot::getX() {
 
 double Robot::getY() {
   return m_location[1];
+}
+
+probDist& Robot::getProbDist() {
+  return m_pd;
 }
 
 double Robot::getDirection() {
@@ -126,6 +135,7 @@ void Robot::Sense(std::vector<std::array<double,2> >& detections) {
     std::array<double,2> ping;
     bool found = m_world.closestIntersection(ray,source,ping);
     if (found) {
+      subtract(ping,source);
       detections.push_back(ping);
     }
   }
@@ -156,8 +166,12 @@ void Robot::Move() {
 }
 
 void Robot::Wander() {
-  for (int i=0; i != 500; ++i) {
-    this->Move();
+  for (int i=0; i != 10; ++i) {
+    std::vector<std::array<double,2> > detections;
+    this->Sense(detections);
+    m_pd.update(detections);
+    this->writeToFile(detections);
+    m_pd.printWallDist();
   }
 }
 

@@ -38,7 +38,7 @@ public:
     std::array<int,2> getClosestGridPoint(double , double );
     void bayesUpOne(int,int,bool,double);
     void bayesUpBatch(std::vector<std::array<int,2>>);
-    void setRobotLocation(std::array<double,2> &loc);
+    void setRobotLocation(std::array<double,2>& loc);
 };
 
 probDist::probDist(int m, int n) {
@@ -62,7 +62,7 @@ probDist::~probDist() {
   m_outfile.close();
 }
 
-void probDist::setRobotLocation(std::array<double,2> &loc) {
+void probDist::setRobotLocation(std::array<double,2>& loc) {
     int x;
     int y;
     x = std::round(loc[0]/this->unit_width);
@@ -192,7 +192,7 @@ void probDist::bayesUpOne(int x, int y, bool hit, double prob) {
     double post;
     double num;
     double den;
-    double offset;
+    // double offset;
 
     if (hit) {
         // std::cout << "Detection here: " << x << "," << y << "\n";
@@ -267,7 +267,7 @@ void probDist::bayesUpBatch(std::vector<std::array<int,2>> v) {
     std::array<int,2> pt;
     for (int i=0; i != v.size();i++) {
         pt = v[i];
-        std::cout << "Point update: " << pt[0] << "," << pt[1] << "\n";
+        // std::cout << "Point update: " << pt[0] << "," << pt[1] << "\n";
         this->bayesUp(pt[0],pt[1]);
     }
 }
